@@ -1,4 +1,4 @@
-# YeePOS - High Performance Cloud POS for WooCommerce
+# YeePOS - PWA Point of Sale for WooCommerce
 
 YeePOS is a modern, high-performance Cloud Point of Sale (POS) system built specifically for WooCommerce. It transforms your store into a powerful retail station with a stunning UI, offline capabilities, and deep WooCommerce integration.
 
