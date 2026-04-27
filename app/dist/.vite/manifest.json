@@ -1,0 +1,170 @@
+{
+  "node_modules/@fontsource/material-icons-outlined/files/material-icons-outlined-latin-400-normal.woff": {
+    "file": "assets/material-icons-outlined-latin-400-normal.woff",
+    "src": "node_modules/@fontsource/material-icons-outlined/files/material-icons-outlined-latin-400-normal.woff"
+  },
+  "node_modules/@fontsource/material-icons-outlined/files/material-icons-outlined-latin-400-normal.woff2": {
+    "file": "assets/material-icons-outlined-latin-400-normal.woff2",
+    "src": "node_modules/@fontsource/material-icons-outlined/files/material-icons-outlined-latin-400-normal.woff2"
+  },
+  "src/assets/logo.png": {
+    "file": "assets/logo.png",
+    "src": "src/assets/logo.png"
+  },
+  "src/locales/ar.json": {
+    "file": "assets/ar.js",
+    "name": "ar",
+    "src": "src/locales/ar.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/de.json": {
+    "file": "assets/de.js",
+    "name": "de",
+    "src": "src/locales/de.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/el.json": {
+    "file": "assets/el.js",
+    "name": "el",
+    "src": "src/locales/el.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/en.json": {
+    "file": "assets/en.js",
+    "name": "en",
+    "src": "src/locales/en.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/es.json": {
+    "file": "assets/es.js",
+    "name": "es",
+    "src": "src/locales/es.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/fr.json": {
+    "file": "assets/fr.js",
+    "name": "fr",
+    "src": "src/locales/fr.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/hi.json": {
+    "file": "assets/hi.js",
+    "name": "hi",
+    "src": "src/locales/hi.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/id.json": {
+    "file": "assets/id.js",
+    "name": "id",
+    "src": "src/locales/id.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/it.json": {
+    "file": "assets/it.js",
+    "name": "it",
+    "src": "src/locales/it.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/ja.json": {
+    "file": "assets/ja.js",
+    "name": "ja",
+    "src": "src/locales/ja.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/ko.json": {
+    "file": "assets/ko.js",
+    "name": "ko",
+    "src": "src/locales/ko.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/ms.json": {
+    "file": "assets/ms.js",
+    "name": "ms",
+    "src": "src/locales/ms.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/nl.json": {
+    "file": "assets/nl.js",
+    "name": "nl",
+    "src": "src/locales/nl.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/pl.json": {
+    "file": "assets/pl.js",
+    "name": "pl",
+    "src": "src/locales/pl.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/pt.json": {
+    "file": "assets/pt.js",
+    "name": "pt",
+    "src": "src/locales/pt.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/ru.json": {
+    "file": "assets/ru.js",
+    "name": "ru",
+    "src": "src/locales/ru.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/th.json": {
+    "file": "assets/th.js",
+    "name": "th",
+    "src": "src/locales/th.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/tr.json": {
+    "file": "assets/tr.js",
+    "name": "tr",
+    "src": "src/locales/tr.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/vi.json": {
+    "file": "assets/vi.js",
+    "name": "vi",
+    "src": "src/locales/vi.json",
+    "isDynamicEntry": true
+  },
+  "src/locales/zh.json": {
+    "file": "assets/zh.js",
+    "name": "zh",
+    "src": "src/locales/zh.json",
+    "isDynamicEntry": true
+  },
+  "src/main.jsx": {
+    "file": "assets/main.js",
+    "name": "main",
+    "src": "src/main.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "src/locales/ar.json",
+      "src/locales/de.json",
+      "src/locales/el.json",
+      "src/locales/en.json",
+      "src/locales/es.json",
+      "src/locales/fr.json",
+      "src/locales/hi.json",
+      "src/locales/id.json",
+      "src/locales/it.json",
+      "src/locales/ja.json",
+      "src/locales/ko.json",
+      "src/locales/ms.json",
+      "src/locales/nl.json",
+      "src/locales/pl.json",
+      "src/locales/pt.json",
+      "src/locales/ru.json",
+      "src/locales/th.json",
+      "src/locales/tr.json",
+      "src/locales/vi.json",
+      "src/locales/zh.json"
+    ],
+    "css": [
+      "assets/main.css"
+    ],
+    "assets": [
+      "assets/logo.png",
+      "assets/material-icons-outlined-latin-400-normal.woff2",
+      "assets/material-icons-outlined-latin-400-normal.woff"
+    ]
+  }
+}

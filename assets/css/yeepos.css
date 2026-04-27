@@ -1,0 +1,29 @@
+ header,
+ footer,
+ .sidebar,
+ aside,
+ .site-header,
+ .site-footer,
+ .nav-menu,
+ #comments,
+ #wpadminbar,
+ .woocommerce-terms-and-conditions-wrapper,
+ #place_order {
+     display: none !important;
+ }
+
+ body {
+     background: #0A0A0E !important;
+     color: #fff !important;
+     margin-top: 0 !important;
+ }
+
+ .woocommerce-checkout,
+ .woocommerce-order-pay {
+     max-width: 800px;
+     margin: 40px auto;
+     padding: 20px;
+     background: #141419;
+     border-radius: 24px;
+     border: 1px solid #2C2C35;
+ }

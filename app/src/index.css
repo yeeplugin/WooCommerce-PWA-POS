@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --bg-page: #f9fafb;
+    --bg-card: #ffffff;
+    --bg-sidebar: #f3f4f6;
+    --bg-header: #ffffff;
+    --text-main: #111827;
+    --text-muted: #4b5563;
+    --border-main: #e5e7eb;
+    --brand-primary: var(--brand-primary, var(--brand-primary));
+    --bg-input: #ffffff;
+  }
+
+  .dark {
+    --bg-page: #050505;
+    --bg-card: #0e0e0e;
+    --bg-sidebar: #141414;
+    --bg-header: #111111;
+    --text-main: #ffffff;
+    --text-muted: #9ca3af;
+    --border-main: #2C2C35;
+    --brand-primary: var(--brand-primary, var(--brand-primary));
+    --bg-input: #111111;
+  }
+
+  body {
+    @apply transition-colors duration-300;
+    background-color: var(--bg-page);
+    color: var(--text-main);
+  }
+}
+
+.material-icons,
+.material-icons-outlined {
+  font-family: inherit; /* Fallback */
+  font-weight: normal !important;
+  font-style: normal !important;
+  font-size: 24px !important;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.material-icons {
+  font-family: 'Material Icons' !important;
+}
+
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined' !important;
+}
+
+/* Icon size modifiers - use these instead of Tailwind text-* classes for icons */
+.material-icons.icon-xs, .material-icons-outlined.icon-xs { font-size: 14px !important; }
+.material-icons.icon-sm, .material-icons-outlined.icon-sm { font-size: 18px !important; }
+.material-icons.icon-md, .material-icons-outlined.icon-md { font-size: 24px !important; }
+.material-icons.icon-lg, .material-icons-outlined.icon-lg { font-size: 32px !important; }
+.material-icons.icon-xl, .material-icons-outlined.icon-xl { font-size: 48px !important; }
+.material-icons.icon-2xl, .material-icons-outlined.icon-2xl { font-size: 64px !important; }
+
+/* Customer-Facing Display Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce-once {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out both;
+}
+.animate-bounce-once {
+  animation: bounce-once 0.6s ease-in-out;
+}
