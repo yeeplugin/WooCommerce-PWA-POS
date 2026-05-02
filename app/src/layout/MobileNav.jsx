@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../utils/i18n';
 
-export function MobileNav({ view, setView, onOpenScanner }) {
+export function MobileNav({ view, setView, onOpenScanner, isBranchActive, onCloseRegister, selectedRegister }) {
   const { t, isRTL } = useTranslation();
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   const navItems = [
     { id: 'sale', icon: 'shopping_cart', label: t('nav.sale') },
@@ -21,11 +22,48 @@ export function MobileNav({ view, setView, onOpenScanner }) {
   return (
     <>
       {/* Backdrop for More Menu */}
-      {isMoreMenuOpen && (
+      {(isMoreMenuOpen || showCloseConfirm) && (
         <div 
           className="fixed inset-0 z-[140] bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
-          onClick={() => setIsMoreMenuOpen(false)}
+          onClick={() => {
+            setIsMoreMenuOpen(false);
+            setShowCloseConfirm(false);
+          }}
         />
+      )}
+
+      {/* Custom Confirmation Modal for Mobile */}
+      {showCloseConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="relative w-full max-w-sm bg-[var(--bg-card)] border border-[var(--border-main)] rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center animate-pulse">
+                <span className="material-icons-outlined text-amber-500 text-3xl">power_settings_new</span>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-[var(--text-main)] font-black text-xl tracking-tight">{t('registers.close_register')}</h4>
+                <p className="text-[var(--text-muted)] text-sm">{t('registers.close_register_confirm')}</p>
+              </div>
+              <div className="flex flex-col w-full gap-3 pt-2">
+                <button 
+                  onClick={() => {
+                    setShowCloseConfirm(false);
+                    onCloseRegister();
+                  }}
+                  className="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+                >
+                  {t('common.confirm', 'Xác nhận')}
+                </button>
+                <button 
+                  onClick={() => setShowCloseConfirm(false)}
+                  className="w-full py-4 bg-[var(--bg-input)] text-[var(--text-muted)] rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] border border-[var(--border-main)] hover:text-[var(--text-main)] transition-all"
+                >
+                  {t('common.cancel', 'Hủy bỏ')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* More Menu Dropup */}
@@ -63,6 +101,28 @@ export function MobileNav({ view, setView, onOpenScanner }) {
               </div>
               <span className="text-xs font-black uppercase tracking-widest">{t('nav.settings')}</span>
             </button>
+
+            {isBranchActive && onCloseRegister && (
+              <>
+                <div className="h-px bg-[var(--border-main)] my-2 opacity-50" />
+                <button 
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    if (selectedRegister?.enable_closing_report === 'yes') {
+                      onCloseRegister();
+                    } else {
+                      setShowCloseConfirm(true);
+                    }
+                  }}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-amber-500 hover:bg-amber-500/10"
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10">
+                    <span className="material-icons-outlined">power_settings_new</span>
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-widest">{t('registers.close_register')}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

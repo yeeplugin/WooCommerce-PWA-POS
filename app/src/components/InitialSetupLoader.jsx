@@ -40,7 +40,7 @@ export function InitialSetupLoader({ progress, message }) {
             </div>
           </div>
           <div className="flex justify-between items-center text-[10px] font-black tracking-widest uppercase">
-            <span className="text-gray-600">Loading</span>
+            <span className="text-gray-600">{t('setup.loading')}</span>
             <span className="text-[var(--brand-primary)]">{Math.round(progress)}%</span>
           </div>
         </div>

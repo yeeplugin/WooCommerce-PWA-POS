@@ -7,15 +7,19 @@ export function SettingsView({
   posSettings, 
   setPosSettings, 
   currentUser,
+  selectedRegister,
   handleSync, 
   handleClearData,
   handleLogout,
+  onCloseRegister,
   isSyncing,
-  lastSyncTime
+  lastSyncTime,
+  isBranchActive
 }) {
   const { t, language, changeLanguage } = useTranslation();
   const isOnline = navigator.onLine;
   const [failedOrdersCount, setFailedOrdersCount] = useState(0);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   useEffect(() => {
     const checkFailedOrders = async () => {
@@ -37,8 +41,45 @@ export function SettingsView({
     setPosSettings(prev => ({ ...prev, forceOffline: !prev.forceOffline }));
   };
 
+  const isCashier = currentUser?.roles?.includes('yeepos_cashier');
+
   return (
     <div className="flex-1 flex flex-col bg-[var(--bg-page)] overflow-hidden">
+      {/* Custom Confirmation Modal */}
+      {showCloseConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#000]/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowCloseConfirm(false)} />
+          <div className="relative w-full max-w-sm bg-[var(--bg-card)] border border-[var(--border-main)] rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center animate-pulse">
+                <span className="material-icons-outlined text-amber-500 text-3xl">power_settings_new</span>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-[var(--text-main)] font-black text-xl tracking-tight">{t('registers.close_register')}</h4>
+                <p className="text-[var(--text-muted)] text-sm">{t('registers.close_register_confirm')}</p>
+              </div>
+              <div className="flex flex-col w-full gap-3 pt-2">
+                <button 
+                  onClick={() => {
+                    setShowCloseConfirm(false);
+                    onCloseRegister();
+                  }}
+                  className="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+                >
+                  {t('common.confirm', 'Xác nhận đóng máy')}
+                </button>
+                <button 
+                  onClick={() => setShowCloseConfirm(false)}
+                  className="w-full py-4 bg-[var(--bg-input)] text-[var(--text-muted)] rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] border border-[var(--border-main)] hover:text-[var(--text-main)] transition-all"
+                >
+                  {t('common.cancel', 'Hủy bỏ')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="h-16 border-b border-[var(--border-main)] flex items-center justify-between px-4 md:px-8 bg-[var(--bg-header)] shrink-0">
         <div className="flex items-center gap-3">
           <span className="material-icons-outlined text-[var(--brand-primary)]">settings</span>
@@ -92,13 +133,39 @@ export function SettingsView({
 
            {/* Store Details Section */}
            <section className="space-y-4">
-             <h3 className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em] ml-2">{t('settings.store_details')}</h3>
+             <div className="flex items-center justify-between ml-2">
+               <h3 className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em]">{t('settings.store_details')}</h3>
+                {isBranchActive && onCloseRegister && (
+                  <button 
+                    onClick={() => {
+                      if (selectedRegister?.enable_closing_report === 'yes') {
+                        onCloseRegister();
+                      } else {
+                        setShowCloseConfirm(true);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg font-black uppercase text-[9px] tracking-widest hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                  >
+                    <span className="material-icons-outlined text-xs">power_settings_new</span>
+                    {t('registers.close_register')}
+                  </button>
+                )}
+             </div>
              <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl md:rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                    <div className="space-y-1">
                       <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{t('settings.store_name')}</label>
                       <p className="text-[var(--text-main)] font-bold text-lg">{shopSettings.shopName || 'YEEPOS Store'}</p>
                    </div>
+                    {selectedRegister && (
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{t('registers.register_name', 'Tên máy thu ngân')}</label>
+                        <div className="flex items-center gap-2">
+                           <span className="material-icons-outlined text-sm text-[var(--brand-primary)]">point_of_sale</span>
+                           <p className="text-[var(--text-main)] font-bold text-lg">{selectedRegister.name}</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{t('settings.store_status')}</label>
                       <div className="flex items-center gap-2">
@@ -112,6 +179,12 @@ export function SettingsView({
                       <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{t('settings.store_address')}</label>
                       <p className="text-[var(--text-muted)] text-sm">{shopSettings.shopAddress || 'Not set in WooCommerce'}</p>
                    </div>
+                   {shopSettings.shopPhone && (
+                     <div className="space-y-1">
+                       <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{t('settings.store_phone') || 'Phone'}</label>
+                       <p className="text-[var(--text-main)] text-sm font-medium">{shopSettings.shopPhone}</p>
+                     </div>
+                   )}
                 </div>
              </div>
            </section>
@@ -133,20 +206,23 @@ export function SettingsView({
                    </button>
                 </div>
 
-                <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
-
-                <div className="flex items-center justify-between">
-                   <div className="space-y-1 pr-4">
-                      <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.manual_offline')}</h4>
-                      <p className="text-[var(--text-muted)] text-[10px] md:text-xs text-balance">{t('settings.manual_offline_desc')}</p>
-                   </div>
-                   <button 
-                     onClick={toggleForceOffline}
-                     className={`w-12 md:w-14 h-7 md:h-8 shrink-0 rounded-full p-1 transition-all duration-300 ${posSettings.forceOffline ? 'bg-amber-500' : 'bg-[var(--border-main)]'}`}
-                   >
-                      <div className={`w-5 h-5 md:w-6 md:h-6 bg-[var(--bg-page)] rounded-full shadow-md transition-all duration-300 transform ${posSettings.forceOffline ? 'translate-x-5 md:translate-x-6' : 'translate-x-0'}`}></div>
-                   </button>
-                </div>
+                {!isCashier && (
+                  <>
+                    <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
+                    <div className="flex items-center justify-between">
+                       <div className="space-y-1 pr-4">
+                          <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.manual_offline')}</h4>
+                          <p className="text-[var(--text-muted)] text-[10px] md:text-xs text-balance">{t('settings.manual_offline_desc')}</p>
+                       </div>
+                       <button 
+                         onClick={toggleForceOffline}
+                         className={`w-12 md:w-14 h-7 md:h-8 shrink-0 rounded-full p-1 transition-all duration-300 ${posSettings.forceOffline ? 'bg-amber-500' : 'bg-[var(--border-main)]'}`}
+                       >
+                          <div className={`w-5 h-5 md:w-6 md:h-6 bg-[var(--bg-page)] rounded-full shadow-md transition-all duration-300 transform ${posSettings.forceOffline ? 'translate-x-5 md:translate-x-6' : 'translate-x-0'}`}></div>
+                       </button>
+                    </div>
+                  </>
+                )}
 
                 <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
                 
@@ -202,111 +278,113 @@ export function SettingsView({
              </div>
            </section>
 
-           {/* Data Management Section */}
-           <section className="space-y-4">
-             <h3 className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em] ml-2">{t('settings.data_maintenance')}</h3>
-             <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl md:rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
-                <div className="flex flex-col gap-6 border-b border-[var(--border-main)] pb-6">
-                   <div className="space-y-1">
-                      <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.cloud_sync')}</h4>
-                      <p className="text-[var(--text-muted)] text-[10px] md:text-xs">{t('settings.cloud_sync_desc')}</p>
-                   </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:flex gap-4 items-end">
-                      <div className="flex flex-col gap-1.5 flex-1">
-                         <label className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest ml-1">{t('settings.sync_auto')}</label>
-                         <select 
-                           value={posSettings.autoSyncInterval}
-                           onChange={(e) => setPosSettings(prev => ({ ...prev, autoSyncInterval: parseInt(e.target.value) }))}
-                           className="bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-xl px-3 py-2.5 outline-none focus:border-[var(--brand-primary)] cursor-pointer"
-                         >
-                            <option value="0">{t('settings.sync_off')}</option>
-                            <option value="1">{t('settings.sync_1m')}</option>
-                            <option value="5">{t('settings.sync_5m')}</option>
-                            <option value="10">{t('settings.sync_10m')}</option>
-                            <option value="30">{t('settings.sync_30m')}</option>
-                            <option value="60">{t('settings.sync_1h')}</option>
-                         </select>
-                      </div>
-                      <div className="flex flex-col gap-1.5 flex-1">
-                         <label className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest ml-1">{t('settings.initial_sync_count') || 'Initial Sync'}</label>
-                         <select 
-                           value={posSettings.initialSyncCount || 100}
-                           onChange={(e) => setPosSettings(prev => ({ ...prev, initialSyncCount: parseInt(e.target.value) }))}
-                           className="bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-xl px-3 py-2.5 outline-none focus:border-[var(--brand-primary)] cursor-pointer"
-                         >
-                            <option value="1">1 {t('settings.sync_per_type') || 'items per type'}</option>
-                            <option value="50">50 {t('settings.sync_per_type') || 'items per type'}</option>
-                            <option value="100">100 {t('settings.sync_per_type') || 'items per type'}</option>
-                            <option value="200">200 {t('settings.sync_per_type') || 'items per type'}</option>
-                            <option value="500">500 {t('settings.sync_per_type') || 'items per type'}</option>
-                         </select>
-                      </div>
-                       <button 
-                         onClick={handleSync}
-                         disabled={isSyncing}
-                         className={`w-full lg:w-auto px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 h-[42px] ${
-                           isSyncing 
-                             ? 'bg-[var(--border-main)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-main)]' 
-                             : 'bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10'
-                         }`}
-                       >
-                          <span className={`material-icons-outlined text-sm ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
-                          {isSyncing ? t('settings.syncing') : t('settings.sync_now')}
-                       </button>
-                   </div>
-                </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1 w-full">
-                       <p className="text-[var(--brand-primary)]/80 text-[10px] font-bold flex items-center gap-1.5">
-                          <span className="material-icons-outlined text-xs">info</span>
-                          {t('settings.sync_info')}
-                       </p>
-                       
-                       <div className="flex flex-col md:flex-row gap-6 md:gap-12 mt-4">
-                          <div>
-                             <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{t('settings.last_sync')}</p>
-                             <p className="text-[var(--text-main)] text-[11px] md:text-[12px] font-bold">{lastSyncTime ? lastSyncTime.toLocaleString() : t('settings.sync_never')}</p>
-                          </div>
-                          {posSettings.autoSyncInterval > 0 && lastSyncTime && (
-                           <div>
-                              <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{t('settings.next_sync')}</p>
-                              <p className="text-[var(--brand-primary)] text-[11px] md:text-[12px] font-bold">
-                                 {new Date(lastSyncTime.getTime() + posSettings.autoSyncInterval * 60 * 1000).toLocaleString()}
-                              </p>
-                           </div>
-                          )}
-                       </div>
-
-                       {failedOrdersCount > 0 && (
-                        <div className="mt-6 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
-                           <span className="material-icons text-red-500">warning</span>
-                           <div className="space-y-0.5">
-                              <p className="text-red-500 text-[9px] font-black uppercase tracking-widest">{t('settings.sync_error')}</p>
-                              <p className="text-red-400/80 text-[9px]">{t('settings.sync_error_desc', { count: failedOrdersCount })}</p>
-                           </div>
+           {/* Data Management Section (Admins only) */}
+           {!isCashier && (
+             <section className="space-y-4">
+               <h3 className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em] ml-2">{t('settings.data_maintenance')}</h3>
+               <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl md:rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+                  <div className="flex flex-col gap-6 border-b border-[var(--border-main)] pb-6">
+                     <div className="space-y-1">
+                        <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.cloud_sync')}</h4>
+                        <p className="text-[var(--text-muted)] text-[10px] md:text-xs">{t('settings.cloud_sync_desc')}</p>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:flex gap-4 items-end">
+                        <div className="flex flex-col gap-1.5 flex-1">
+                           <label className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest ml-1">{t('settings.sync_auto')}</label>
+                           <select 
+                             value={posSettings.autoSyncInterval}
+                             onChange={(e) => setPosSettings(prev => ({ ...prev, autoSyncInterval: parseInt(e.target.value) }))}
+                             className="bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-xl px-3 py-2.5 outline-none focus:border-[var(--brand-primary)] cursor-pointer"
+                           >
+                              <option value="0">{t('settings.sync_off')}</option>
+                              <option value="1">{t('settings.sync_1m')}</option>
+                              <option value="5">{t('settings.sync_5m')}</option>
+                              <option value="10">{t('settings.sync_10m')}</option>
+                              <option value="30">{t('settings.sync_30m')}</option>
+                              <option value="60">{t('settings.sync_1h')}</option>
+                           </select>
                         </div>
-                       )}
-                    </div>
-                </div>
-                
-                <div className="h-px bg-[var(--border-main)] my-2 opacity-30" />
+                        <div className="flex flex-col gap-1.5 flex-1">
+                           <label className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest ml-1">{t('settings.initial_sync_count') || 'Initial Sync'}</label>
+                           <select 
+                             value={posSettings.initialSyncCount || 100}
+                             onChange={(e) => setPosSettings(prev => ({ ...prev, initialSyncCount: parseInt(e.target.value) }))}
+                             className="bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-xl px-3 py-2.5 outline-none focus:border-[var(--brand-primary)] cursor-pointer"
+                           >
+                              <option value="1">1 {t('settings.sync_per_type') || 'items per type'}</option>
+                              <option value="50">50 {t('settings.sync_per_type') || 'items per type'}</option>
+                              <option value="100">100 {t('settings.sync_per_type') || 'items per type'}</option>
+                              <option value="200">200 {t('settings.sync_per_type') || 'items per type'}</option>
+                              <option value="500">500 {t('settings.sync_per_type') || 'items per type'}</option>
+                           </select>
+                        </div>
+                         <button 
+                           onClick={handleSync}
+                           disabled={isSyncing}
+                           className={`w-full lg:w-auto px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 h-[42px] ${
+                             isSyncing 
+                               ? 'bg-[var(--border-main)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-main)]' 
+                               : 'bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10'
+                           }`}
+                         >
+                            <span className={`material-icons-outlined text-sm ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
+                            {isSyncing ? t('settings.syncing') : t('settings.sync_now')}
+                         </button>
+                     </div>
+                  </div>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                   <div className="space-y-1">
-                      <h4 className="text-red-500 font-bold text-sm md:text-base">{t('settings.clear_data')}</h4>
-                      <p className="text-[var(--text-muted)] text-[10px] md:text-xs text-balance">{t('settings.clear_data_desc')}</p>
-                   </div>
-                   <button 
-                     onClick={handleClearData}
-                     className="w-full md:w-auto px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                   >
-                      <span className="material-icons-outlined text-sm">delete_forever</span>
-                      {t('settings.clear_data')}
-                   </button>
-                </div>
-             </div>
-           </section>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 w-full">
+                         <p className="text-[var(--brand-primary)]/80 text-[10px] font-bold flex items-center gap-1.5">
+                            <span className="material-icons-outlined text-xs">info</span>
+                            {t('settings.sync_info')}
+                         </p>
+                         
+                         <div className="flex flex-col md:flex-row gap-6 md:gap-12 mt-4">
+                            <div>
+                               <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{t('settings.last_sync')}</p>
+                               <p className="text-[var(--text-main)] text-[11px] md:text-[12px] font-bold">{lastSyncTime ? lastSyncTime.toLocaleString() : t('settings.sync_never')}</p>
+                            </div>
+                            {posSettings.autoSyncInterval > 0 && lastSyncTime && (
+                             <div>
+                                <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{t('settings.next_sync')}</p>
+                                <p className="text-[var(--brand-primary)] text-[11px] md:text-[12px] font-bold">
+                                   {new Date(lastSyncTime.getTime() + posSettings.autoSyncInterval * 60 * 1000).toLocaleString()}
+                                </p>
+                             </div>
+                            )}
+                         </div>
+
+                         {failedOrdersCount > 0 && (
+                          <div className="mt-6 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                             <span className="material-icons text-red-500">warning</span>
+                             <div className="space-y-0.5">
+                                <p className="text-red-500 text-[9px] font-black uppercase tracking-widest">{t('settings.sync_error')}</p>
+                                <p className="text-red-400/80 text-[9px]">{t('settings.sync_error_desc', { count: failedOrdersCount })}</p>
+                             </div>
+                          </div>
+                         )}
+                      </div>
+                  </div>
+                  
+                  <div className="h-px bg-[var(--border-main)] my-2 opacity-30" />
+
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                     <div className="space-y-1">
+                        <h4 className="text-red-500 font-bold text-sm md:text-base">{t('settings.clear_data')}</h4>
+                        <p className="text-[var(--text-muted)] text-[10px] md:text-xs text-balance">{t('settings.clear_data_desc')}</p>
+                     </div>
+                     <button 
+                       onClick={handleClearData}
+                       className="w-full md:w-auto px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                     >
+                        <span className="material-icons-outlined text-sm">delete_forever</span>
+                        {t('settings.clear_data')}
+                     </button>
+                  </div>
+               </div>
+             </section>
+           )}
 
           <footer className="pt-12 pb-8 text-center border-t border-[var(--border-main)]/30">
              <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em]">{t('settings.version', { version: '1.2.0' })}</p>

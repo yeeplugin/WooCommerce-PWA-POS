@@ -28,6 +28,7 @@ export function CheckoutOverlay({
   originalOrderMetadata = null,
   shopSettings = {},
   posSettings = {},
+  selectedRegister,
   tables = [],
   cfd,
   clearCart,
@@ -998,15 +999,17 @@ export function CheckoutOverlay({
                    <span className="material-icons-outlined text-base">payments</span>
                    {t('checkout.payment_offline')}
                 </button>
-                <button 
-                  onClick={() => setPaymentMode('online')}
-                  className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
-                    paymentMode === 'online' ? 'bg-[var(--brand-primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                   <span className="material-icons-outlined text-base">language</span>
-                   {t('checkout.payment_online')}
-                </button>
+                {(!selectedRegister || (selectedRegister && selectedRegister.enable_online_payment === 'yes')) && (
+                  <button 
+                    onClick={() => setPaymentMode('online')}
+                    className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                      paymentMode === 'online' ? 'bg-[var(--brand-primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    }`}
+                  >
+                     <span className="material-icons-outlined text-base">language</span>
+                     {t('checkout.payment_online')}
+                  </button>
+                )}
              </div>
           </div>
 

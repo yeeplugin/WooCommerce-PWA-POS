@@ -153,9 +153,13 @@ export const updateProduct = async (id, data) => {
   }
 };
 
-export const fetchProducts = async (page = 1, perPage = 20) => {
+export const fetchProducts = async (page = 1, perPage = 20, storeId = null, registerName = null) => {
   try {
-    const response = await apiFetch(`${wcConfig.apiUrl}products?page=${page}&per_page=${perPage}&status=publish`, {
+    let url = `${wcConfig.apiUrl}products?page=${page}&per_page=${perPage}&status=publish`;
+    if (storeId) url += `&store_id=${storeId}`;
+    if (registerName) url += `&register_name=${encodeURIComponent(registerName)}`;
+
+    const response = await apiFetch(url, {
       headers: getHeaders(),
     });
 
@@ -328,9 +332,13 @@ export const fetchCountries = async () => {
     return [];
   }
 };
-export const fetchCategories = async () => {
+export const fetchCategories = async (storeId = null, registerName = null) => {
   try {
-    const response = await fetch(`${wcConfig.apiUrl}products/categories?per_page=100&hide_empty=true`, {
+    let url = `${wcConfig.apiUrl}products/categories?per_page=100&hide_empty=false`;
+    if (storeId) url += `&store_id=${storeId}`;
+    if (registerName) url += `&register_name=${encodeURIComponent(registerName)}`;
+
+    const response = await apiFetch(url, {
       headers: getHeaders(),
     });
 
@@ -732,3 +740,85 @@ export const searchOrdersOnline = async (keyword, perPage = 20) => {
   }
 };
 
+
+/**
+ * Fetch available stores/branches for the current user
+ */
+export const fetchStores = async () => {
+  try {
+    const response = await apiFetch(`${yeeConfig.apiUrl}stores`, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        // If the endpoint doesn't exist or module is disabled, return a default "Main Store"
+        return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
+    }
+
+    const stores = await response.json();
+    if (!stores || stores.length === 0) {
+        return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
+    }
+    return stores;
+  } catch (error) {
+    console.error('[YeePOS] Failed to fetch stores:', error);
+    // Fallback to main store on error
+    return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
+  }
+};
+
+/**
+ * Claim a register for the current user
+ */
+export const claimRegister = async (storeId, registerName) => {
+  try {
+    const response = await apiFetch(`${yeeConfig.apiUrl}register/claim`, {
+      method: 'POST',
+      body: JSON.stringify({ store_id: storeId, register_name: registerName }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || 'Failed to claim register');
+    return result;
+  } catch (error) {
+    console.error('[YeePOS] Register claim error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Release a register
+ */
+export const releaseRegister = async (storeId, registerName, closingNote = '') => {
+  try {
+    const response = await apiFetch(`${yeeConfig.apiUrl}register/release`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        store_id: storeId, 
+        register_name: registerName,
+        closing_note: closingNote
+      }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('[YeePOS] Register release error:', error);
+    return { success: false };
+  }
+};
+
+/**
+ * Fetch session summary for closing report
+ */
+export const fetchSessionSummary = async (storeId, registerName) => {
+  try {
+    const response = await apiFetch(`${yeeConfig.apiUrl}register/session-summary?store_id=${storeId}&register_name=${encodeURIComponent(registerName)}`, {
+      method: 'GET',
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || 'Failed to fetch session summary');
+    return result;
+  } catch (error) {
+    console.error('[YeePOS] Session summary error:', error);
+    return null;
+  }
+};

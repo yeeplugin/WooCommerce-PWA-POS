@@ -2,7 +2,7 @@ import React from 'react';
 import { MenuBtn } from '../components/common/MenuBtn';
 import { useTranslation } from '../utils/i18n';
 
-export function Sidebar({ view, setView, freeTablesCount, newOnlineOrdersCount, onViewOrders, isCollapsed, onToggle }) {
+export function Sidebar({ view, setView, freeTablesCount, newOnlineOrdersCount, onViewOrders, isCollapsed, onToggle, selectedStore, selectedRegister }) {
   const { t, isRTL } = useTranslation();
   const isFoodEnabled = window.yeePOSData?.activeModules?.food || false;
   
@@ -14,12 +14,24 @@ export function Sidebar({ view, setView, freeTablesCount, newOnlineOrdersCount, 
     >
       {/* Logo Header */}
       <div 
-        className="h-16 bg-[#00a8e8] text-white flex items-center justify-center font-black tracking-tighter text-2xl cursor-pointer shrink-0" 
+        className="h-16 bg-[#00a8e8] text-white flex flex-col items-center justify-center cursor-pointer shrink-0" 
         onClick={() => window.location.reload()}
-        title="YeePOS"
+        title={selectedStore?.name || "YeePOS"}
       >
-        <span className={`bg-white text-[#00a8e8] px-1 rounded-sm ${isRTL ? 'ml-[1px]' : 'mr-[1px]'}`}>Y</span>
-        {!isCollapsed && "EE"}
+        <div className="flex items-center justify-center font-black tracking-tighter text-2xl">
+          <span className={`bg-white text-[#00a8e8] px-1 rounded-sm ${isRTL ? 'ml-[1px]' : 'mr-[1px]'}`}>Y</span>
+          {!isCollapsed && "EE"}
+        </div>
+        {!isCollapsed && selectedStore && (
+          <div className="text-[9px] font-bold uppercase tracking-widest opacity-80 mt-[-2px] truncate max-w-[80px]">
+            {selectedStore.name}
+          </div>
+        )}
+        {!isCollapsed && selectedRegister && (
+          <div className="text-[8px] font-medium uppercase tracking-tight opacity-60 truncate max-w-[80px]">
+             {selectedRegister.name}
+          </div>
+        )}
       </div>
       
       {/* New Order Button */}

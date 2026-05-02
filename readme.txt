@@ -5,15 +5,15 @@ Requires at least: 6.0
 Tested up to: 6.9
 WC requires at least: 4.0
 WC tested up to: 10.6
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-YeePOS is an ultra-fast, offline-first Point of Sale (POS) system for WooCommerce, built as a Progressive Web App (PWA).
+YeePOS is a fast, offline-first Point of Sale (POS) system for WooCommerce, built as a Progressive Web App (PWA).
 
 == Description ==
 
-YeePOS transforms your WooCommerce store into a powerful, offline-first Point of Sale (POS) system. Designed for speed and reliability, it allows your cashiers and store managers to process orders in milliseconds, even without an active internet connection.
+YeePOS transforms your WooCommerce store into a comprehensive, offline-first Point of Sale (POS) system. Designed for speed and reliability, it allows your cashiers and store managers to process orders efficiently, even without an active internet connection.
 
 Built using modern web technologies (React & Progressive Web App), YeePOS installs directly on your iPad, Android tablet, or desktop computer, providing a native app-like experience.
 
@@ -22,22 +22,22 @@ Built using modern web technologies (React & Progressive Web App), YeePOS instal
 
 ### Key Features & Capabilities
 
-**1. Unrivaled Performance & Offline Mode**
+**1. Optimized Performance & Offline Mode**
 * **Offline-First Architecture**: Powered by IndexedDB, allowing uninterrupted sales even when the internet is completely disconnected.
 * **Auto-Synchronization**: Orders, customers, and data are automatically synced back to WooCommerce once the connection is restored.
-* **Secure REST API V3**: Built natively on top of the latest and most secure WooCommerce REST API V3 architecture for rock-solid data integrity.
+* **Secure REST API V3**: Built natively on top of the secure WooCommerce REST API V3 architecture for reliable data integrity.
 * **Progressive Web App (PWA)**: Install directly to iOS, Android, macOS, or Windows devices without app store approvals. Works like a native full-screen app.
-* **Hybrid Search System**: Combines instant local search with fallback online API search for massive product catalogs.
-* **Optimized for Low-End Devices**: Highly efficient rendering and smart memory management ensure the app runs smoothly and responsively even on older or weaker hardware.
-* **Massive Catalog Support**: Architected to effortlessly handle large-scale retail operations, easily processing huge catalogs with up to 500,000 products without any performance drops.
+* **Hybrid Search System**: Combines instant local search with fallback online API search for large product catalogs.
+* **Efficient for Low-End Devices**: Optimized rendering and memory management ensure the app runs responsively even on older hardware.
+* **Large Catalog Support**: Architected to handle large-scale retail operations, processing catalogs with up to 500,000 products without performance drops.
 
-**2. Lightning-Fast Checkout & Cart Management**
+**2. Quick Checkout & Cart Management**
 * **Barcode & QR Code Scanning**: Built-in support for USB/Bluetooth physical barcode scanners, plus advanced camera-based Barcode and QR code scanning for mobile devices.
 * **Variable & Add-on Products**: Fully supports WooCommerce product variations, custom attributes, and dynamic product add-ons.
 * **Editable Cart Items**: Adjust prices, update quantities, or add custom discounts directly from the POS cart interface.
-* **Coupons & Discounts**: Syncs with WooCommerce coupon settings to apply fixed or percentage discounts seamlessly.
+* **Coupons & Discounts**: Syncs with WooCommerce coupon settings to apply fixed or percentage discounts directly.
 * **Custom Tips & Surcharges**: Easily add tips (preset percentages or custom amounts) to the final bill.
-* **Standard WooCommerce Tax Support**: Full compliance and seamless synchronization with standard WooCommerce tax settings, supporting both inclusive and exclusive tax configurations.
+* **Standard WooCommerce Tax Support**: Full compliance and direct synchronization with standard WooCommerce tax settings, supporting both inclusive and exclusive tax configurations.
 
 **3. Comprehensive Store & Order Management**
 * **In-App Store Management**: Manage your entire inventory, customer database, and process online WooCommerce orders directly from the POS interface without needing to access the WP admin dashboard.
@@ -48,10 +48,10 @@ Built using modern web technologies (React & Progressive Web App), YeePOS instal
 
 **4. Payments & Printing**
 * **Flexible Payment Methods**: Filter and select from Cash, Cash on Delivery (COD), Direct Bank Transfer (BACS), and other custom offline gateways.
-* **Online Checkout & Payments**: Send payment links or QR codes directly to the Customer Display, allowing customers to seamlessly check out using your standard WooCommerce online payment gateways (Stripe, PayPal, Apple Pay, etc.).
+* **Online Checkout & Payments**: Send payment links or QR codes directly to the Customer Display, allowing customers to check out using your standard WooCommerce online payment gateways (Stripe, PayPal, Apple Pay, etc.).
 * **Split Payments & Change Due**: Automatically calculates balance and change due for cash transactions.
-* **Thermal Receipt Printing & Cash Drawers**: Optimized layout for 58mm/80mm thermal receipt printers using native browser print capabilities, with seamless trigger support for connected cash drawers.
-* **Dual Screen Support (Customer Facing Display)**: Connect a second monitor or tablet to broadcast a beautiful, live view of the cart, items, totals, and payment URLs to enhance customer transparency.
+* **Thermal Receipt Printing & Cash Drawers**: Optimized layout for 58mm/80mm thermal receipt printers using native browser print capabilities, with direct trigger support for connected cash drawers.
+* **Dual Screen Support (Customer Facing Display)**: Connect a second monitor or tablet to broadcast a clear, live view of the cart, items, totals, and payment URLs to enhance customer transparency.
 
 **5. Smart UI/UX & Localization**
 * **Dark Mode & Light Mode**: Auto-adapts to OS settings or can be manually toggled to reduce eye strain.
@@ -64,7 +64,7 @@ Built using modern web technologies (React & Progressive Web App), YeePOS instal
 * **Table Management**: Assign orders to specific tables for restaurants and cafes.
 * **Multi-Store Management**: Limit product visibility and assign staff to specific physical branches.
 
-### Perfect for various retail businesses:
+### Suitable for various retail businesses:
 * Retail Stores & Boutiques
 * Restaurants & Cafes
 * Food Trucks
@@ -99,7 +99,7 @@ Your data is safe. YeePOS stores all pending orders and local data securely in y
 == Screenshots ==
 
 1. **POS Dashboard**: A clean, intuitive interface for fast order processing.
-2. **Offline Mode**: Seamlessly continue selling when the connection drops.
+2. **Offline Mode**: Continue selling even when the connection drops.
 3. **Product Variations**: Easy selection of product attributes and add-ons.
 4. **Parked Orders**: Manage ongoing and paused orders efficiently.
 

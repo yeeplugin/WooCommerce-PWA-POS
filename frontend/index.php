@@ -12,12 +12,51 @@ class Yeekit_Woo_Pos_Frontend
         add_action('show_admin_bar', [$this, 'disable_admin_bar']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_pos_checkout_assets']);
         add_action('send_headers', [$this, 'add_frame_ancestors_header']);
+        add_filter('script_loader_tag', [$this, 'yee_add_module_type_to_scripts'], 10, 3);
+    }
+    public function yee_add_module_type_to_scripts($tag, $handle, $src)
+    {
+        if (in_array($handle, ['yeepos-app-script'])) {
+            return '<script type="module" src="' . esc_url($src) . '"></script>'; //phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+        }
+        return $tag;
     }
     public function enqueue_pos_checkout_assets()
     {
         if ($this->is_pos_checkout_context()) {
             wp_enqueue_style('yeepos-checkout', YEEKIT_WOO_POS_URL . 'assets/css/yeepos.css', [], time());
             wp_enqueue_script('yeepos-checkout', YEEKIT_WOO_POS_URL . 'assets/js/yeepos.js', [], time(), true);
+        }
+        if (get_query_var('yeepos_app')) {
+            $js_file  = 'app/dist/assets/main.js';
+            $css_file = 'app/dist/assets/main.css';
+            wp_register_style('yeepos-app-style', YEEKIT_WOO_POS_URL . $css_file, [], YEEKIT_WOO_POS_VERSION);
+            wp_register_script('yeepos-app-script', YEEKIT_WOO_POS_URL . $js_file, [], YEEKIT_WOO_POS_VERSION, true);
+            $is_logged_in = is_user_logged_in();
+            $can_access = current_user_can('manage_woocommerce') || current_user_can('access_yeepos');
+            $current_user = wp_get_current_user();
+            $yee_pos_data = [
+                'apiUrl'  => esc_url_raw(rest_url()),
+                'nonce'   => wp_create_nonce('wp_rest'),
+                'siteUrl' => site_url(),
+                'siteTitle' => get_bloginfo('name'),
+                'isLoggedIn' => $is_logged_in && $can_access,
+                'loginUrl'   => wp_login_url(),
+                'logoutUrl'  => wp_logout_url(site_url('/pos')),
+                'currentUser' => ($is_logged_in && $can_access) ? [
+                    'id'           => $current_user->ID,
+                    'display_name' => $current_user->display_name,
+                    'user_email'   => $current_user->user_email,
+                    'avatar'       => get_avatar_url($current_user->ID),
+                    'roles'        => $current_user->roles,
+                ] : null,
+                'activeModules' => apply_filters('yeepos_active_modules', [
+                    'food' => false
+                ]),
+                'locale' => substr(get_locale(), 0, 2)
+            ];
+            wp_register_script('yee-pos-data', '');
+            wp_localize_script('yee-pos-data', 'yeePOSData', $yee_pos_data);
         }
     }
     public function add_frame_ancestors_header()
@@ -99,9 +138,8 @@ class Yeekit_Woo_Pos_Frontend
                     window.yeePOSData = <?php echo wp_json_encode($yee_pos_data); ?>;
                 </script>
                 <?php
-                $is_dev = false;
+                $is_dev = true;
                 if ($is_dev) :
-                /*
                 ?>
                     <script type="module">
                         import RefreshRuntime from "http://localhost:5173/@react-refresh"
@@ -113,39 +151,12 @@ class Yeekit_Woo_Pos_Frontend
                     <script type="module" src="http://localhost:5173/@vite/client"></script>
                     <script type="module" src="http://localhost:5173/src/main.jsx"></script>
                 <?php
-                */
                 else :
-                    // Fixed filenames from Vite config (no hashing)
-                    $js_file  = 'app/dist/assets/main.js';
-                    $css_file = 'app/dist/assets/main.css';
-                ?>
-                    <link rel="stylesheet" href="<?php echo esc_url(YEEKIT_WOO_POS_URL . $css_file); //phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet 
-                                                    ?>">
-                    <script type="module" src="<?php echo esc_url(YEEKIT_WOO_POS_URL . $js_file); //phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript 
-                                                ?>"></script>
-                <?php endif; ?>
-                <style>
-                    body,
-                    html {
-                        margin: 0;
-                        padding: 0;
-                        width: 100%;
-                        height: 100%;
-                        overflow: hidden;
-                        background: #0A0A0E;
-                    }
-
-                    @media (prefers-color-scheme: light) {
-                        body, html {
-                            background: #f9fafb;
-                        }
-                    }
-
-                    #root {
-                        height: 100vh;
-                        width: 100vw;
-                    }
-                </style>
+                    do_action('wp_enqueue_scripts'); //phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+                    wp_print_styles('yeepos-app-style');
+                    wp_print_scripts('yee-pos-data');
+                    wp_print_scripts('yeepos-app-script');
+                endif; ?>
             </head>
 
             <body>

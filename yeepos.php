@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Plugin Name: YeePOS - PWA Point of Sale for WooCommerce
- * Description: High-performance Progressive Web App POS for seamless retail management.
- * Version:     1.0.0
+ * Plugin Name: YeePOS - PWA Point of Sale for WooCommerce W
+ * Description: Offline-first Progressive Web App POS for WooCommerce retail management.
+ * Version:     1.0.1
  * Author:      addonsorg
  * Requires Plugins: woocommerce
  * Author URI: https://add-ons.org/

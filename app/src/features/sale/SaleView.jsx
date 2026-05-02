@@ -29,6 +29,7 @@ export function SaleView({
   categories,
   taxConfig,
   posSettings,
+  selectedRegister,
   customers,
   paymentGateways,
   lastCreatedOrder,
@@ -256,6 +257,13 @@ export function SaleView({
     });
     return result;
   }, [products, onlineSearchResults, searchQuery, selectedCategory, sortOrder, filterStock, pinnedProductIds]);
+
+  const filteredPaymentGateways = useMemo(() => {
+    if (!selectedRegister || !selectedRegister.payment_methods || selectedRegister.payment_methods.length === 0) {
+      return paymentGateways;
+    }
+    return paymentGateways.filter(g => selectedRegister.payment_methods.includes(g.id));
+  }, [paymentGateways, selectedRegister]);
 
   const [displayLimit, setDisplayLimit] = useState(40);
   const observerTarget = useRef(null);
@@ -816,13 +824,14 @@ export function SaleView({
               taxConfig={taxConfig}
               formatPrice={formatPrice}
               customers={customers}
-              paymentGateways={paymentGateways}
+              paymentGateways={filteredPaymentGateways}
               lastCreatedOrder={lastCreatedOrder}
               setLastCreatedOrder={setLastCreatedOrder}
               resumingOrderId={resumingOrderId}
               originalOrderMetadata={originalOrderMetadata}
               shopSettings={shopSettings}
               posSettings={posSettings}
+              selectedRegister={selectedRegister}
               tables={tables}
               cfd={cfd}
               onNavigate={onNavigate}
@@ -1004,7 +1013,9 @@ export function SaleView({
                  className="flex-1 flex items-center justify-center gap-2 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/5 transition-colors border-t border-[var(--border-main)]"
                >
                  <span className="material-icons-outlined">{resumingOrderId ? 'update' : 'save'}</span> 
-                 {resumingOrderId ? t('sale.update_table') : (isFoodEnabled ? t('sale.save_to_table') : t('sale.park_order'))}
+                 {resumingOrderId 
+                    ? (isFoodEnabled && originalOrderMetadata?.table ? t('sale.save_to_table') : t('sale.update_table')) 
+                    : t('sale.park_order')}
                </button>
                <button 
                  onClick={() => {
@@ -1066,13 +1077,14 @@ export function SaleView({
             taxConfig={taxConfig}
             formatPrice={formatPrice}
             customers={customers}
-            paymentGateways={paymentGateways}
+            paymentGateways={filteredPaymentGateways}
             lastCreatedOrder={lastCreatedOrder}
             setLastCreatedOrder={setLastCreatedOrder}
             resumingOrderId={resumingOrderId}
             originalOrderMetadata={originalOrderMetadata}
             shopSettings={shopSettings}
             posSettings={posSettings}
+            selectedRegister={selectedRegister}
             tables={tables}
             cfd={cfd}
             onNavigate={onNavigate}

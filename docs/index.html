@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YeePOS Documentation</title>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --primary: #2563eb; /* YeePOS Brand Color - Blue */
+            --text: #333;
+            --sidebar-bg: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Layout */
+        .docs-sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .docs-content {
+            flex-grow: 1;
+            padding: 40px 60px;
+            max-width: 900px;
+        }
+
+        /* Navigation */
+        .docs-nav h3 {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            margin-top: 25px;
+        }
+
+        .docs-nav h3:first-child {
+            margin-top: 0;
+        }
+
+        .docs-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .docs-nav li {
+            margin-bottom: 5px;
+        }
+
+        .docs-nav a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .docs-nav a:hover {
+            background: #f1f5f9;
+        }
+
+        .docs-nav a.active {
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Typography */
+        h1 {
+            color: #0f172a;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #0f172a;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            color: #0f172a;
+            margin-top: 30px;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        code {
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: var(--primary);
+        }
+
+        pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .alert {
+            padding: 1rem;
+            background-color: #fefce8;
+            border-left: 4px solid #eab308;
+            color: #854d0e;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            background-color: #f0f9ff;
+            border-left-color: #0ea5e9;
+            color: #0c4a6e;
+        }
+
+        ul.guide-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        ul.guide-list li {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        ul.guide-list li:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
+
+        ul.guide-list h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        ul.guide-list p {
+            font-size: 0.9em;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+
+        ul.guide-list a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .docs-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 20px;
+            }
+
+            .docs-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="docs-sidebar">
+        <div class="docs-nav">
+            <h3>Getting Started</h3>
+            <ul>
+                <li><a href="#overview" class="active">Overview</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#branding">PWA & Branding</a></li>
+            </ul>
+
+            <h3>Configuration</h3>
+            <ul>
+                <li><a href="#filters">Product Filters</a></li>
+                <li><a href="#addons">Add-ons System</a></li>
+                <li><a href="#api">REST API Sync</a></li>
+            </ul>
+
+            <h3>Support</h3>
+            <ul>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="docs-content">
+        <section id="overview">
+            <h1>YeePOS Documentation</h1>
+            <p><strong>YeePOS</strong> is a professional, high-performance Point of Sale (POS) system for WooCommerce. Built as a Progressive Web App (PWA), it provides a native-like experience on any device while maintaining real-time synchronization with your WooCommerce store.</p>
+
+            <h3>Core Capabilities</h3>
+            <ul class="guide-list">
+                <li>
+                    <a href="#branding">
+                        <h3>Full PWA Support →</h3>
+                        <p>Install on iOS/Android with custom icons and offline caching.</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="#filters">
+                        <h3>Smart Sync Filters →</h3>
+                        <p>Control exactly which products and categories sync to your POS.</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="#api">
+                        <h3>Lightning Fast API →</h3>
+                        <p>Optimized endpoints for massive catalogs and instant search.</p>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <section id="installation">
+            <h2>Installation</h2>
+            <ol>
+                <li>Upload the <code>yeepos</code> plugin folder to your WordPress site.</li>
+                <li>Activate the plugin in <strong>Plugins > Installed Plugins</strong>.</li>
+                <li>Navigate to the new <strong>YeePOS</strong> menu in your WordPress dashboard.</li>
+                <li>Configure your branding settings and open the POS interface.</li>
+            </ol>
+            <div class="alert alert-info">
+                <strong>Note:</strong> YeePOS requires an active SSL certificate (HTTPS) for PWA features like "Add to Home Screen" to work correctly.
+            </div>
+        </section>
+
+        <section id="branding">
+            <h2>PWA & Branding</h2>
+            <p>Make the POS yours. Go to <strong>YeePOS > Settings > Settings APP PWA</strong> to customize:</p>
+            <ul>
+                <li><strong>App Name:</strong> The name displayed when installed on mobile devices.</li>
+                <li><strong>Theme Color:</strong> Sets the color of the browser address bar and UI elements.</li>
+                <li><strong>Theme Icon:</strong> Upload a 512x512 PNG to serve as the app icon.</li>
+                <li><strong>Background Color:</strong> The color shown during the app splash screen.</li>
+            </ul>
+        </section>
+
+        <section id="filters">
+            <h2>Product Filters</h2>
+            <p>Located at <strong>YeePOS > Settings > Product Filters</strong>, these settings determine what data is synchronized with your local POS database.</p>
+            <ul>
+                <li><strong>Include Products:</strong> Search and select specific products to show.</li>
+                <li><strong>Exclude Products:</strong> Specifically hide products from the POS.</li>
+                <li><strong>Category Whitelist/Blacklist:</strong> Filter entire groups of products at once.</li>
+            </ul>
+            <div class="alert">
+                <strong>Important:</strong> Changes to filters require a "Sync Now" action within the POS application to reflect the new product list.
+            </div>
+        </section>
+
+        <section id="addons">
+            <h2>Add-ons System</h2>
+            <p>YeePOS features a modular add-on architecture for extended functionality:</p>
+            <ul>
+                <li><strong>Product Add-on:</strong> Support for WooCommerce Product Add-ons (Toppings, custom text).</li>
+                <li><strong>QR Menu:</strong> Self-service ordering system for dine-in customers.</li>
+                <li><strong>Restaurant Management:</strong> Advanced kitchen coordination and table management.</li>
+            </ul>
+        </section>
+
+        <section id="api">
+            <h2>REST API Sync</h2>
+            <p>YeePOS uses custom, highly-optimized REST API endpoints located at <code>/wp-json/yeepos/v1/</code>. These endpoints are designed to be 20x lighter than standard WooCommerce API responses, ensuring smooth performance even on low-end mobile hardware.</p>
+        </section>
+
+        <section id="faq">
+            <h2>FAQ</h2>
+            <p><strong>Q: Does YeePOS work offline?</strong><br>
+                A: Yes. YeePOS uses IndexedDB to cache your product catalog. You can create carts and browse products without an internet connection. An internet connection is only required for the final checkout sync.</p>
+
+            <p><strong>Q: Can I use my existing receipt printer?</strong><br>
+                A: YeePOS supports standard browser printing. Any printer recognized by your device (Windows, Mac, iOS, Android) will work seamlessly.</p>
+        </section>
+
+    </main>
+
+    <script>
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.docs-nav a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

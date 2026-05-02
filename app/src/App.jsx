@@ -24,6 +24,10 @@ import { CustomerDisplay } from './features/display/CustomerDisplay';
 import { useCFDBroadcast } from './hooks/useCFDBroadcast';
 import { buildOccupiedTableMap } from './utils/tableStatus';
 import { InitialSetupLoader } from './components/InitialSetupLoader';
+import { StoreSelector } from './components/StoreSelector';
+import { RegisterSelector } from './components/RegisterSelector';
+import { ClosingReportModal } from './components/ClosingReportModal';
+import { fetchStores, claimRegister, releaseRegister, fetchSessionSummary } from './api/woocommerce';
 
 // Check if this tab should render the Customer-Facing Display
 const isCustomerDisplay = new URLSearchParams(window.location.search).get('display') === 'customer';
@@ -116,6 +120,7 @@ function App() {
 
 function MainApp({ posSettings, setPosSettings }) {
   const { t } = useTranslation();
+  const isBranchActive = window.yeePOSData?.activeModules?.branchActive === true;
   const [view, setView] = useState('sale'); // 'sale', 'customers', or 'products'
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -145,6 +150,12 @@ function MainApp({ posSettings, setPosSettings }) {
   const [newOnlineOrdersCount, setNewOnlineOrdersCount] = useState(0);
   const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [shouldOpenCheckoutOnResume, setShouldOpenCheckoutOnResume] = useState(false);
+  
+  // Closing Report state
+  const [isClosingReportOpen, setIsClosingReportOpen] = useState(false);
+  const [sessionSummary, setSessionSummary] = useState(null);
+  const [closingCallback, setClosingCallback] = useState(null);
+
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
   const [priceFormatConfig, setPriceFormatConfig] = useState(() => {
     const saved = localStorage.getItem('pos_price_format_config');
@@ -172,6 +183,15 @@ function MainApp({ posSettings, setPosSettings }) {
     return saved ? new Date(saved) : null;
   });
   const [currentUser, setCurrentUser] = useState(window.yeePOSData?.currentUser || null);
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState(() => {
+    const saved = localStorage.getItem('pos_selected_store');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [selectedRegister, setSelectedRegister] = useState(() => {
+    const saved = localStorage.getItem('pos_selected_register');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [setupProgress, setSetupProgress] = useState(null);
   const isSyncingRef = useRef(false);
   const isFoodEnabled = window.yeePOSData?.activeModules?.food || false;
@@ -225,6 +245,57 @@ function MainApp({ posSettings, setPosSettings }) {
   useEffect(() => {
     if (currentUser) {
       const initialize = async () => {
+        // Step 1: Fetch Stores (Workflow 2)
+        const availableStores = await fetchStores();
+        setStores(availableStores);
+
+        // Step 2: Multi-store logic (Workflow 3)
+        if (availableStores.length >= 1) {
+          // If branch module is not active, auto-select the first store/register (Old Way)
+          if (!isBranchActive && !selectedStore) {
+            const firstStore = availableStores[0];
+            setSelectedStore(firstStore);
+            localStorage.setItem('pos_selected_store', JSON.stringify(firstStore));
+            
+            if (firstStore.registers && firstStore.registers.length > 0) {
+              const firstReg = firstStore.registers[0];
+              setSelectedRegister(firstReg);
+              localStorage.setItem('pos_selected_register', JSON.stringify(firstReg));
+            }
+          } else if (selectedStore) {
+            // If already selected, check if it's still in the available list
+            const currentStore = availableStores.find(s => s.id === selectedStore.id);
+            if (!currentStore) {
+               setSelectedStore(null);
+               setSelectedRegister(null);
+               localStorage.removeItem('pos_selected_store');
+               localStorage.removeItem('pos_selected_register');
+            } else {
+               // Update the store data (in case registers changed)
+               setSelectedStore(currentStore);
+               localStorage.setItem('pos_selected_store', JSON.stringify(currentStore));
+               
+               // Check if selected register still exists in this store
+               if (selectedRegister && currentStore.registers) {
+                  const regExists = currentStore.registers.find(r => r.name === selectedRegister.name);
+                  if (!regExists) {
+                    setSelectedRegister(null);
+                    localStorage.removeItem('pos_selected_register');
+                  }
+               }
+            }
+          }
+        } else {
+          // Fallback to main
+          const fallbackStore = { 
+            id: 'main', 
+            name: window.yeePOSData?.siteTitle || 'Main Store', 
+            is_main: true,
+            registers: [{ name: 'Default Register' }]
+          };
+          handleSelectStore(fallbackStore);
+        }
+
         await loadLocalData(); // Load local data first for instant UI
         
         // Detect if this is the first login by checking product count
@@ -242,6 +313,113 @@ function MainApp({ posSettings, setPosSettings }) {
       initialize();
     }
   }, [currentUser?.id]);
+  
+  // Workflow: Trigger initial sync when a register is selected (if cache was cleared)
+  useEffect(() => {
+    if (selectedRegister && selectedStore && currentUser) {
+      const checkAndSync = async () => {
+        const productCount = await db.products.count().catch(() => 0);
+        if (productCount === 0) {
+          console.log('[YeePOS] Register selected and cache is empty. Starting initial sync...');
+          setSetupProgress({ percent: 5, message: t('setup.connecting', 'Đang kết nối đến máy chủ...') });
+          await loadInitialData(false, true);
+          setSetupProgress(null);
+        }
+      };
+      checkAndSync();
+    }
+  }, [selectedRegister?.name, selectedStore?.id]);
+
+  // Session Heartbeat: Detect if admin force logged us out
+  useEffect(() => {
+    if (!currentUser || !selectedStore || !selectedRegister) return;
+
+    const checkSession = async () => {
+      try {
+        const latestStores = await fetchStores();
+        const currentStoreData = latestStores.find(s => s.id === selectedStore.id);
+        
+        if (currentStoreData) {
+          const currentRegData = currentStoreData.registers?.find(r => r.name === selectedRegister.name);
+          
+          // If register info is missing or someone else took it (active_user exists and it's not us)
+          // Note: Backend handle_stores only returns active_user if it's NOT the current user
+          if (currentRegData && currentRegData.active_user) {
+            console.warn('[YeePOS] Session invalidated by Admin or another user.');
+            toast.error(t('registers.session_invalidated', 'Phiên làm việc đã kết thúc hoặc bị quản trị viên đăng xuất.'));
+            setSelectedRegister(null);
+            localStorage.removeItem('pos_selected_register');
+          }
+        }
+      } catch (err) {
+        console.warn('[YeePOS] Failed to check session heartbeat');
+      }
+    };
+
+    const interval = setInterval(checkSession, 300000); // Check every 5m
+    return () => clearInterval(interval);
+  }, [currentUser, selectedStore, selectedRegister]);
+
+  const handleSelectStore = async (store) => {
+    // Release old register if changing store
+    if (selectedStore && selectedRegister) {
+      await releaseRegister(selectedStore.id, selectedRegister.name);
+    }
+    
+    setSelectedStore(store);
+    localStorage.setItem('pos_selected_store', JSON.stringify(store));
+    
+    // Always clear selected register when changing store
+    setSelectedRegister(null);
+    localStorage.removeItem('pos_selected_register');
+  };
+
+  const handleSelectRegister = async (register, storeId = null) => {
+    const targetStoreId = storeId || selectedStore?.id;
+    if (!targetStoreId) return false;
+
+    try {
+      // Claim on server (Workflow 5: Active check)
+      await claimRegister(targetStoreId, register.name);
+
+      // --- Optimization: Clear cache if branch/register changed ---
+      if (isBranchActive) {
+        const lastStoreId = localStorage.getItem('yeepos_last_store_id');
+        const lastRegisterName = localStorage.getItem('yeepos_last_register_name');
+
+        if (lastStoreId !== String(targetStoreId) || lastRegisterName !== register.name) {
+          console.log('[YeePOS] Store/Register changed. Clearing local cache for fresh sync...');
+          try {
+            await Promise.all([
+              db.products.clear(),
+              db.dining_tables.clear(),
+              db.orders.where('status').equals('parked').delete(), // Only clear parked orders
+              db.settings.delete('categories'),
+              db.settings.delete('payment_gateways')
+            ]);
+            // Force reload products in state
+            setProducts([]);
+            setCategories([]);
+            if (isFoodEnabled) setTables([]);
+          } catch (e) {
+            console.error('[YeePOS] Failed to clear cache:', e);
+          }
+        }
+        
+        localStorage.setItem('yeepos_last_store_id', targetStoreId);
+        localStorage.setItem('yeepos_last_register_name', register.name);
+      }
+      // --- End Optimization ---
+      
+      setSelectedRegister(register);
+      localStorage.setItem('pos_selected_register', JSON.stringify(register));
+      setView('sale'); // Always return to sale view after register selection
+      return true;
+    } catch (err) {
+      toast.error(err.message || t('registers.claim_error', 'Không thể đăng nhập vào máy này.'));
+      return false;
+    }
+  };
 
   const persistApiConfig = async (userData = null) => {
     const config = {
@@ -265,30 +443,67 @@ function MainApp({ posSettings, setPosSettings }) {
     setCurrentUser(user);
   };
 
-  const handleLogout = async () => {
-    if (!confirm(t('settings.logout_confirm'))) return;
-    
-    try {
-      // Call the API endpoint
-      const response = await fetch(`${window.yeePOSData.apiUrl}yeepos/v1/logout`, {
-        method: 'POST',
-        headers: {
-          'X-WP-Nonce': window.yeePOSData.nonce
+  const handleShowClosingReport = async (callback) => {
+    if (isBranchActive && selectedRegister?.enable_closing_report === 'yes' && selectedStore && selectedRegister) {
+      try {
+        const summary = await fetchSessionSummary(selectedStore.id, selectedRegister.name);
+        if (summary) {
+          setSessionSummary(summary);
+          setClosingCallback(() => callback);
+          setIsClosingReportOpen(true);
+          return;
         }
-      });
-      
-      const result = await response.json();
-      console.log('[YeePOS] Logout API response:', result);
-    } catch (err) {
-      console.error('[YeePOS] API Logout failed, proceeding with local logout:', err);
+      } catch (err) {
+        console.error('[YeePOS] Failed to fetch session summary:', err);
+      }
     }
+    // If not enabled or failed, just call callback
+    callback('');
+  };
 
-    // Clear local state and go to login screen
-    setCurrentUser(null);
-    // Also clear from window data to prevent auto-login on refresh
-    if (window.yeePOSData) {
-      window.yeePOSData.currentUser = null;
-    }
+  const handleCloseRegister = async () => {
+    handleShowClosingReport(async (note) => {
+      if (selectedStore && selectedRegister) {
+        await releaseRegister(selectedStore.id, selectedRegister.name, note);
+        setSelectedRegister(null);
+        setSelectedStore(null);
+        localStorage.removeItem('pos_selected_register');
+        localStorage.removeItem('pos_selected_store');
+        window.location.reload();
+      }
+    });
+  };
+
+  const handleLogout = async () => {
+    const isReportEnabled = selectedRegister?.enable_closing_report === 'yes';
+    if (!isReportEnabled && !confirm(t('settings.logout_confirm'))) return;
+
+    handleShowClosingReport(async (note) => {
+      try {
+        // Release register if any
+        if (selectedStore && selectedRegister) {
+          await releaseRegister(selectedStore.id, selectedRegister.name, note);
+        }
+
+        // Call the API endpoint
+        await fetch(`${window.yeePOSData.apiUrl}yeepos/v1/logout`, {
+          method: 'POST',
+          headers: {
+            'X-WP-Nonce': window.yeePOSData.nonce
+          }
+        });
+      } catch (err) {
+        console.error('[YeePOS] API Logout failed:', err);
+      } finally {
+        setCurrentUser(null);
+        setSelectedStore(null);
+        setSelectedRegister(null);
+        localStorage.removeItem('yeepos_user');
+        localStorage.removeItem('pos_selected_register');
+        localStorage.removeItem('pos_selected_store');
+        window.location.reload();
+      }
+    });
   };
 
   // Format a WC API product into the lightweight POS cache format
@@ -315,7 +530,13 @@ function MainApp({ posSettings, setPosSettings }) {
     try {
       // Only fetch initialSyncCount products (default 100) — Cache-on-Demand
       const syncCount = posSettings.initialSyncCount || 100;
-      const apiProducts = await fetchProducts(1, syncCount);
+      const apiProducts = await fetchProducts(
+        1, 
+        syncCount, 
+        isBranchActive ? selectedStore?.id : null,
+        isBranchActive ? selectedRegister?.name : null
+      );
+      
       if (apiProducts?.length > 0) {
         const formattedProducts = apiProducts.map(formatProduct);
         // Use bulkPut (upsert) instead of clear+bulkAdd
@@ -428,7 +649,11 @@ function MainApp({ posSettings, setPosSettings }) {
         fetchPaymentGateways()
       ]);
 
-      const shopInfo = {
+      const shopInfo = (isBranchActive && selectedStore) ? {
+        shopName: selectedStore.name || window.yeePOSData?.siteTitle || 'YEEPOS STORE',
+        shopAddress: selectedStore.address || '',
+        shopPhone: selectedStore.phone || ''
+      } : {
         shopName: window.yeePOSData?.siteTitle || 'YEEPOS STORE',
         shopAddress: `${generalSettings.find(s => s.id === 'woocommerce_store_address')?.value || ''}, ${generalSettings.find(s => s.id === 'woocommerce_store_city')?.value || ''}`,
         shopPhone: generalSettings.find(s => s.id === 'woocommerce_store_postcode')?.value || '' 
@@ -472,7 +697,10 @@ function MainApp({ posSettings, setPosSettings }) {
       // Load Countries, Categories, Customers
       const [apiCountries, apiCategories, apiCustomers] = await Promise.all([
         fetchCountries(),
-        fetchCategories(),
+        fetchCategories(
+          isBranchActive ? selectedStore?.id : null,
+          isBranchActive ? selectedRegister?.name : null
+        ),
         fetchCustomers(1, posSettings.initialSyncCount || 100)
       ]);
 
@@ -489,7 +717,14 @@ function MainApp({ posSettings, setPosSettings }) {
 
       // Load Dynamic Tables (Only if Food module is active)
       if (isFoodEnabled) {
-        const apiTables = await fetchTables();
+        let apiTables = [];
+        if (isBranchActive && selectedStore?.table_data) {
+          apiTables = selectedStore.table_data;
+          console.log(`[YeePOS] Using branch-specific tables for store: ${selectedStore.name}`);
+        } else {
+          apiTables = await fetchTables();
+        }
+
         if (apiTables?.length > 0) {
           try {
             await db.dining_tables.clear();
@@ -674,7 +909,9 @@ function MainApp({ posSettings, setPosSettings }) {
     const meta_data = [
       ...(checkoutData.meta_data || []),
       { key: '_yeepos_cashier_id', value: currentUser?.id },
-      { key: '_yeepos_cashier_name', value: currentUser?.display_name || currentUser?.user_email }
+      { key: '_yeepos_cashier_name', value: currentUser?.display_name || currentUser?.user_email },
+      { key: '_yeepos_store_id', value: selectedStore?.id },
+      { key: '_yeepos_register_name', value: selectedRegister?.name }
     ];
 
     // Map customer details for local storage
@@ -886,8 +1123,19 @@ function MainApp({ posSettings, setPosSettings }) {
           posSettings={posSettings}
           setPosSettings={setPosSettings}
         />
-      ) : setupProgress ? (
+      ) : (setupProgress) ? (
         <InitialSetupLoader progress={setupProgress.percent} message={setupProgress.message} />
+      ) : (window.yeePOSData?.activeModules?.branchActive && !selectedStore) ? (
+        <StoreSelector stores={stores} onSelect={handleSelectStore} />
+      ) : (window.yeePOSData?.activeModules?.branchActive && selectedStore && !selectedRegister) ? (
+        <RegisterSelector 
+          store={selectedStore} 
+          onSelect={handleSelectRegister} 
+          onBack={() => {
+            setSelectedStore(null);
+            localStorage.removeItem('pos_selected_store');
+          }}
+        />
       ) : (
         <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-[#0A0A0E] overflow-hidden text-gray-300 antialiased font-sans">
           {/* Desktop Sidebar */}
@@ -900,6 +1148,8 @@ function MainApp({ posSettings, setPosSettings }) {
               onViewOrders={() => setNewOnlineOrdersCount(0)}
               isCollapsed={isSidebarCollapsed}
               onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              selectedStore={selectedStore}
+              selectedRegister={selectedRegister}
             />
           </div>
           
@@ -934,6 +1184,7 @@ function MainApp({ posSettings, setPosSettings }) {
                 parkedOrdersCount={parkedOrdersCount}
                 shopSettings={shopSettings}
                 posSettings={posSettings}
+                selectedRegister={selectedRegister}
                 tables={tables}
                 cfd={cfd}
                 onCacheProduct={handleCacheProduct}
@@ -953,9 +1204,12 @@ function MainApp({ posSettings, setPosSettings }) {
                 posSettings={posSettings}
                 setPosSettings={setPosSettings}
                 currentUser={currentUser}
-                handleSync={() => loadInitialData(false)}
+                selectedRegister={selectedRegister}
+                isBranchActive={isBranchActive}
+                handleSync={loadInitialData}
                 handleClearData={handleClearLocalData}
                 handleLogout={handleLogout}
+                onCloseRegister={handleCloseRegister}
                 isSyncing={isManualSyncing}
                 lastSyncTime={lastSyncTime}
               />
@@ -1011,6 +1265,9 @@ function MainApp({ posSettings, setPosSettings }) {
               view={view} 
               setView={setView} 
               onOpenScanner={() => setIsBarcodeModalOpen(true)}
+              isBranchActive={isBranchActive}
+              onCloseRegister={handleCloseRegister}
+              selectedRegister={selectedRegister}
             />
           </main>
         </div>
@@ -1026,6 +1283,22 @@ function MainApp({ posSettings, setPosSettings }) {
              window.dispatchEvent(new CustomEvent('yeepos_barcode_scan', { detail: code }));
           }}
           formatPrice={formatPrice}
+        />
+      )}
+
+      {isClosingReportOpen && (
+        <ClosingReportModal 
+          data={sessionSummary}
+          formatPrice={formatPrice}
+          showNotes={selectedRegister?.enable_final_notes === 'yes'}
+          onConfirm={(note) => {
+            setIsClosingReportOpen(false);
+            if (closingCallback) closingCallback(note);
+          }}
+          onCancel={() => {
+            setIsClosingReportOpen(false);
+            setClosingCallback(null);
+          }}
         />
       )}
     </>
