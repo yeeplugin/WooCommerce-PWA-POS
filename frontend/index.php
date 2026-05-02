@@ -138,7 +138,7 @@ class Yeekit_Woo_Pos_Frontend
                     window.yeePOSData = <?php echo wp_json_encode($yee_pos_data); ?>;
                 </script>
                 <?php
-                $is_dev = true;
+                $is_dev = false;
                 if ($is_dev) :
                 ?>
                     <script type="module">
