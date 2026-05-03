@@ -537,5 +537,8 @@
   "registers.start_working": "Começar a trabalhar",
   "registers.close_register": "Fechar caixa / Fim de turno",
   "registers.close_register_confirm": "Tem certeza que deseja fechar esta caixa e terminar o seu turno?",
-  "common.back_to_stores": "Voltar à seleção de loja"
+  "common.back_to_stores": "Voltar à seleção de loja",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

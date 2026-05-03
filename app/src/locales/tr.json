@@ -537,5 +537,8 @@
   "registers.start_working": "Çalışmaya Başla",
   "registers.close_register": "Kasayı Kapat / Vardiya Sonu",
   "registers.close_register_confirm": "Bu kasayı kapatmak ve vardiyanızı sonlandırmak istediğinizden emin misiniz?",
-  "common.back_to_stores": "Mağaza Seçimine Dön"
+  "common.back_to_stores": "Mağaza Seçimine Dön",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

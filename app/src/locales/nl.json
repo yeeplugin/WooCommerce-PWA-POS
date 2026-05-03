@@ -537,5 +537,8 @@
   "registers.start_working": "Begin met werken",
   "registers.close_register": "Kassa sluiten / Einde dienst",
   "registers.close_register_confirm": "Weet u zeker dat u deze kassa wilt sluiten en uw dienst wilt beëindigen?",
-  "common.back_to_stores": "Terug naar winkelselectie"
+  "common.back_to_stores": "Terug naar winkelselectie",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

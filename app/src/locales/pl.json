@@ -537,5 +537,8 @@
   "registers.start_working": "Rozpocznij pracę",
   "registers.close_register": "Zamknij kasę / Koniec zmiany",
   "registers.close_register_confirm": "Czy na pewno chcesz zamknąć tę kasę i zakończyć zmianę?",
-  "common.back_to_stores": "Powrót do wyboru sklepu"
+  "common.back_to_stores": "Powrót do wyboru sklepu",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

@@ -1037,6 +1037,7 @@ export function CheckoutOverlay({
                            gateway.id === 'cod' ? 'delivery_dining' : 
                            gateway.id === 'bacs' ? 'account_balance' : 
                            gateway.id === 'cheque' ? 'receipt_long' : 
+                           gateway.id === 'chip_and_pin' ? 'credit_card' : 
                            gateway.id.includes('stripe') ? 'credit_card' :
                            gateway.id.includes('paypal') ? 'account_balance_wallet' :
                            'payment'}

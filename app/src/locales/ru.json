@@ -537,5 +537,8 @@
   "registers.start_working": "Начать работу",
   "registers.close_register": "Закрыть кассу / Конец смены",
   "registers.close_register_confirm": "Вы уверены, что хотите закрыть кассу и завершить смену?",
-  "common.back_to_stores": "Вернуться к выбору магазина"
+  "common.back_to_stores": "Вернуться к выбору магазина",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

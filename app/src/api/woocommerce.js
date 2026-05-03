@@ -75,7 +75,12 @@ const getHeaders = () => (
  */
 export const refreshNonce = async () => {
   try {
-    const response = await fetch(`${yeeConfig.apiUrl}refresh-nonce`);
+    const response = await fetch(`${yeeConfig.apiUrl}refresh-nonce`,
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
+    );
     const result = await response.json();
     if (result.nonce) {
       updateApiNonce(result.nonce);
@@ -751,13 +756,13 @@ export const fetchStores = async () => {
     });
 
     if (!response.ok) {
-        // If the endpoint doesn't exist or module is disabled, return a default "Main Store"
-        return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
+      // If the endpoint doesn't exist or module is disabled, return a default "Main Store"
+      return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
     }
 
     const stores = await response.json();
     if (!stores || stores.length === 0) {
-        return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
+      return [{ id: 'main', name: window.yeePOSData?.siteTitle || 'Main Store', is_main: true }];
     }
     return stores;
   } catch (error) {
@@ -793,8 +798,8 @@ export const releaseRegister = async (storeId, registerName, closingNote = '') =
   try {
     const response = await apiFetch(`${yeeConfig.apiUrl}register/release`, {
       method: 'POST',
-      body: JSON.stringify({ 
-        store_id: storeId, 
+      body: JSON.stringify({
+        store_id: storeId,
         register_name: registerName,
         closing_note: closingNote
       }),

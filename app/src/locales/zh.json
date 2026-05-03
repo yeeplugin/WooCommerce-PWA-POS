@@ -537,5 +537,8 @@
   "registers.start_working": "开始工作",
   "registers.close_register": "关闭收银机 / 结账",
   "registers.close_register_confirm": "您确定要关闭此收银机并结束班次吗？",
-  "common.back_to_stores": "返回门店选择"
+  "common.back_to_stores": "返回门店选择",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

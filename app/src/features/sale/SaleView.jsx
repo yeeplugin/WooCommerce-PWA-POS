@@ -226,6 +226,19 @@ export function SaleView({
       result = [...result, ...newFromOnline];
     }
 
+    // Register-specific product filtering (Include/Exclude)
+    if (selectedRegister) {
+      const includeIds = selectedRegister.include_products || [];
+      const excludeIds = selectedRegister.exclude_products || [];
+      
+      if (includeIds.length > 0) {
+        result = result.filter(p => includeIds.map(String).includes(String(p.id)));
+      }
+      if (excludeIds.length > 0) {
+        result = result.filter(p => !excludeIds.map(String).includes(String(p.id)));
+      }
+    }
+
     // Search filter
     if (searchQuery) {
        result = result.filter(p => 
@@ -256,7 +269,7 @@ export function SaleView({
       return 0;
     });
     return result;
-  }, [products, onlineSearchResults, searchQuery, selectedCategory, sortOrder, filterStock, pinnedProductIds]);
+  }, [products, onlineSearchResults, searchQuery, selectedCategory, sortOrder, filterStock, pinnedProductIds, selectedRegister]);
 
   const filteredPaymentGateways = useMemo(() => {
     if (!selectedRegister || !selectedRegister.payment_methods || selectedRegister.payment_methods.length === 0) {

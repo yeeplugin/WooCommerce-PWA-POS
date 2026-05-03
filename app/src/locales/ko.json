@@ -537,5 +537,8 @@
   "registers.start_working": "업무 시작",
   "registers.close_register": "포스 마감 / 교대 종료",
   "registers.close_register_confirm": "포스기를 마감하고 교대를 종료하시겠습니까?",
-  "common.back_to_stores": "매장 선택으로 돌아가기"
+  "common.back_to_stores": "매장 선택으로 돌아가기",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

@@ -24,9 +24,10 @@ class Yeekit_Woo_Pos_Load
 {
     public function __construct()
     {
-        require_once plugin_dir_path(__FILE__) . 'rest.php';
-        require_once plugin_dir_path(__FILE__) . 'backend/index.php';
-        require_once plugin_dir_path(__FILE__) . 'frontend/index.php';
+        require_once YEEKIT_WOO_POS_PATH . 'rest.php';
+        require_once YEEKIT_WOO_POS_PATH . 'backend/index.php';
+        require_once YEEKIT_WOO_POS_PATH . 'backend/offline_payment.php';
+        require_once YEEKIT_WOO_POS_PATH . 'frontend/index.php';
         add_action('query_vars', [$this, 'add_query_vars']);
         add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
     }

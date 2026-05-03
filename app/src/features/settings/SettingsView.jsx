@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../db/indexedDB';
 import { useTranslation } from '../../utils/i18n';
-
 export function SettingsView({ 
   shopSettings, 
   posSettings, 
@@ -20,29 +19,23 @@ export function SettingsView({
   const isOnline = navigator.onLine;
   const [failedOrdersCount, setFailedOrdersCount] = useState(0);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
-
   useEffect(() => {
     const checkFailedOrders = async () => {
       const count = await db.orders.where('syncStatus').equals(2).count();
       setFailedOrdersCount(count);
     };
     checkFailedOrders();
-    
     // Refresh count when coming back to view
     const timer = setInterval(checkFailedOrders, 30000);
     return () => clearInterval(timer);
   }, []);
-
   const toggleAutoPrint = () => {
     setPosSettings(prev => ({ ...prev, autoPrint: !prev.autoPrint }));
   };
-
   const toggleForceOffline = () => {
     setPosSettings(prev => ({ ...prev, forceOffline: !prev.forceOffline }));
   };
-
   const isCashier = currentUser?.roles?.includes('yeepos_cashier');
-
   return (
     <div className="flex-1 flex flex-col bg-[var(--bg-page)] overflow-hidden">
       {/* Custom Confirmation Modal */}
@@ -79,14 +72,12 @@ export function SettingsView({
           </div>
         </div>
       )}
-
       <header className="h-16 border-b border-[var(--border-main)] flex items-center justify-between px-4 md:px-8 bg-[var(--bg-header)] shrink-0">
         <div className="flex items-center gap-3">
           <span className="material-icons-outlined text-[var(--brand-primary)]">settings</span>
           <h2 className="text-[var(--text-main)] font-black text-sm uppercase tracking-[0.2em]">{t('settings.title')}</h2>
         </div>
       </header>
-
       <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-hide">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
            {/* User Profile Section */}
@@ -130,7 +121,6 @@ export function SettingsView({
                </div>
              </section>
            )}
-
            {/* Store Details Section */}
            <section className="space-y-4">
              <div className="flex items-center justify-between ml-2">
@@ -188,7 +178,6 @@ export function SettingsView({
                 </div>
              </div>
            </section>
-
            {/* Device & Printing Section */}
            <section className="space-y-4">
              <h3 className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em] ml-2">{t('settings.hardware')}</h3>
@@ -205,7 +194,6 @@ export function SettingsView({
                      <div className={`w-5 h-5 md:w-6 md:h-6 bg-[var(--bg-page)] rounded-full shadow-md transition-all duration-300 transform ${posSettings.autoPrint ? 'translate-x-5 md:translate-x-6' : 'translate-x-0'}`}></div>
                    </button>
                 </div>
-
                 {!isCashier && (
                   <>
                     <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
@@ -223,9 +211,7 @@ export function SettingsView({
                     </div>
                   </>
                 )}
-
                 <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
-                
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                    <div className="space-y-1">
                       <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.theme')}</h4>
@@ -252,9 +238,7 @@ export function SettingsView({
                       </button>
                    </div>
                 </div>
-
                 <div className="h-px bg-[var(--border-main)] my-4 md:my-6 opacity-30" />
-
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                    <div className="space-y-1">
                       <h4 className="text-[var(--text-main)] font-bold text-sm md:text-base">{t('settings.language')}</h4>
@@ -277,7 +261,6 @@ export function SettingsView({
                 </div>
              </div>
            </section>
-
            {/* Data Management Section (Admins only) */}
            {!isCashier && (
              <section className="space-y-4">
@@ -297,7 +280,6 @@ export function SettingsView({
                              className="bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-xl px-3 py-2.5 outline-none focus:border-[var(--brand-primary)] cursor-pointer"
                            >
                               <option value="0">{t('settings.sync_off')}</option>
-                              <option value="1">{t('settings.sync_1m')}</option>
                               <option value="5">{t('settings.sync_5m')}</option>
                               <option value="10">{t('settings.sync_10m')}</option>
                               <option value="30">{t('settings.sync_30m')}</option>
@@ -316,6 +298,7 @@ export function SettingsView({
                               <option value="100">100 {t('settings.sync_per_type') || 'items per type'}</option>
                               <option value="200">200 {t('settings.sync_per_type') || 'items per type'}</option>
                               <option value="500">500 {t('settings.sync_per_type') || 'items per type'}</option>
+                              <option value="999999">{t('settings.unlimited') || 'Unlimited'}</option>
                            </select>
                         </div>
                          <button 
@@ -332,14 +315,12 @@ export function SettingsView({
                          </button>
                      </div>
                   </div>
-
                     <div className="flex items-center justify-between">
                       <div className="space-y-1 w-full">
                          <p className="text-[var(--brand-primary)]/80 text-[10px] font-bold flex items-center gap-1.5">
                             <span className="material-icons-outlined text-xs">info</span>
                             {t('settings.sync_info')}
                          </p>
-                         
                          <div className="flex flex-col md:flex-row gap-6 md:gap-12 mt-4">
                             <div>
                                <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{t('settings.last_sync')}</p>
@@ -354,7 +335,6 @@ export function SettingsView({
                              </div>
                             )}
                          </div>
-
                          {failedOrdersCount > 0 && (
                           <div className="mt-6 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
                              <span className="material-icons text-red-500">warning</span>
@@ -366,9 +346,7 @@ export function SettingsView({
                          )}
                       </div>
                   </div>
-                  
                   <div className="h-px bg-[var(--border-main)] my-2 opacity-30" />
-
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                      <div className="space-y-1">
                         <h4 className="text-red-500 font-bold text-sm md:text-base">{t('settings.clear_data')}</h4>
@@ -385,7 +363,6 @@ export function SettingsView({
                </div>
              </section>
            )}
-
           <footer className="pt-12 pb-8 text-center border-t border-[var(--border-main)]/30">
              <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em]">{t('settings.version', { version: '1.2.0' })}</p>
              <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] mt-2 italic opacity-60 px-4">{t('settings.motto')}</p>

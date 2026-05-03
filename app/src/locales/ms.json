@@ -537,5 +537,8 @@
   "registers.start_working": "Mula Bekerja",
   "registers.close_register": "Tutup Mesin / Tamat Syif",
   "registers.close_register_confirm": "Adakah anda pasti mahu menutup mesin ini dan menamatkan syif anda?",
-  "common.back_to_stores": "Kembali ke Pemilihan Kedai"
+  "common.back_to_stores": "Kembali ke Pemilihan Kedai",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

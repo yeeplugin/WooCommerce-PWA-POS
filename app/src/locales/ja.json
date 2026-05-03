@@ -537,5 +537,8 @@
   "registers.start_working": "業務を開始",
   "registers.close_register": "レジを閉じる / 締め",
   "registers.close_register_confirm": "このレジを閉じて業務を終了しますか？",
-  "common.back_to_stores": "店舗選択に戻る"
+  "common.back_to_stores": "店舗選択に戻る",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

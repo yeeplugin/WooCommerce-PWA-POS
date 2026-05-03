@@ -537,5 +537,8 @@
   "registers.start_working": "بدء العمل",
   "registers.close_register": "إغلاق الكاشير / نهاية الوردية",
   "registers.close_register_confirm": "هل أنت متأكد من رغبتك في إغلاق الكاشير وإنهاء ورديتك؟",
-  "common.back_to_stores": "العودة لاختيار المتجر"
+  "common.back_to_stores": "العودة لاختيار المتجر",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

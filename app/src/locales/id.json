@@ -537,5 +537,8 @@
   "registers.start_working": "Mulai Bekerja",
   "registers.close_register": "Tutup Kasir / Akhir Shift",
   "registers.close_register_confirm": "Apakah Anda yakin ingin menutup kasir ini dan mengakhiri shift Anda?",
-  "common.back_to_stores": "Kembali ke Pemilihan Toko"
+  "common.back_to_stores": "Kembali ke Pemilihan Toko",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

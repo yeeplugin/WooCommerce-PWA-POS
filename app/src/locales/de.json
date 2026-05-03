@@ -537,5 +537,8 @@
   "registers.start_working": "Arbeit beginnen",
   "registers.close_register": "Kasse schließen / Schichtende",
   "registers.close_register_confirm": "Sind Sie sicher, dass Sie diese Kasse schließen und Ihre Schicht beenden möchten?",
-  "common.back_to_stores": "Zurück zur Filialauswahl"
+  "common.back_to_stores": "Zurück zur Filialauswahl",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

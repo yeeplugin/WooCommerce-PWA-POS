@@ -537,5 +537,8 @@
   "registers.start_working": "Start Working",
   "registers.close_register": "Close Register / Shift End",
   "registers.close_register_confirm": "Are you sure you want to close this register and end your shift?",
-  "common.back_to_stores": "Back to Store Selection"
+  "common.back_to_stores": "Back to Store Selection",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

@@ -41,7 +41,7 @@ function App() {
       forceOffline: false, 
       autoSyncInterval: 10, 
       language: wpLocale,
-      theme: 'auto',
+      theme: 'dark',
       initialSyncCount: 100
     };
     return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
@@ -588,7 +588,7 @@ function MainApp({ posSettings, setPosSettings }) {
       
       setProducts(localProducts);
       setCustomers(localCustomers);
-      const allowedGateways = ['cash', 'cod', 'bacs','cheque'];
+      const allowedGateways = window.yeePOSData?.enabledGateways || ['cash', 'cod', 'bacs', 'cheque', 'chip_and_pin'];
       setPaymentGateways(localGateways.filter(g => allowedGateways.includes(g.id)));
       setCountries(localCountries);
       setCategories(localCategories);
@@ -659,7 +659,7 @@ function MainApp({ posSettings, setPosSettings }) {
         shopPhone: generalSettings.find(s => s.id === 'woocommerce_store_postcode')?.value || '' 
       };
       setShopSettings(shopInfo);
-      const allowedGateways = ['cash', 'cod', 'bacs', 'cheque'];
+      const allowedGateways = window.yeePOSData?.enabledGateways || ['cash', 'cod', 'bacs', 'cheque', 'chip_and_pin'];
       const enabledGateways = apiGateways.filter(g => g.enabled && allowedGateways.includes(g.id));
       setPaymentGateways(enabledGateways);
       db.settings.put({ id: 'payment_gateways', data: enabledGateways }).catch(() => {});

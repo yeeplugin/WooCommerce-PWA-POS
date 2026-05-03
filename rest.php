@@ -15,17 +15,22 @@ class YeePOS_REST_Controller
         add_filter('woocommerce_available_payment_gateways', [$this, 'yeepos_filter_payment_gateways']);
         add_filter('woocommerce_rest_product_object_query', [$this, 'filter_products_by_sync_settings'], 10, 2);
         add_filter('woocommerce_rest_product_cat_query', [$this, 'filter_categories_by_sync_settings'], 10, 2);
+        add_filter('woocommerce_payment_gateways', [$this, 'register_custom_gateways']);
+        add_filter('woocommerce_rest_product_collection_params', [$this, 'allow_unlimited_per_page'], 10, 2);
+    }
+    public function register_custom_gateways($gateways)
+    {
+        $gateways[] = 'WC_Gateway_YeePOS_Cash';
+        $gateways[] = 'WC_Gateway_YeePOS_Chip_And_Pin';
+        return $gateways;
     }
     public function yeepos_filter_payment_gateways($available_gateways)
     {
-        if (!isset($_GET['pos_pay'])) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            return $available_gateways;
-        }
-        $offline_gateways = [
-            'cod',       // Cash on Delivery
-            'cheque',    // Check payments
-            'bacs',      // Direct bank transfer
-        ];
+        // if (!isset($_GET['pos_pay'])) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        //     return $available_gateways;
+        // }
+        $offline_gateways = get_option('yeepos_offline_disabled_gateways', ['cod', 'cheque', 'bacs']);
+        $offline_gateways = array_merge($offline_gateways, ['cash', 'chip_and_pin']);
         foreach ($offline_gateways as $gateway_id) {
             if (isset($available_gateways[$gateway_id])) {
                 unset($available_gateways[$gateway_id]);
@@ -61,7 +66,6 @@ class YeePOS_REST_Controller
     }
     public function add_payment_url_to_rest_response($response, $order, $request)
     {
-        // Add payment_url to the data array of the REST response
         $data = $response->get_data();
         $data['payment_url'] = add_query_arg('pos_pay', $order->get_id(), $order->get_checkout_payment_url());
         $response->set_data($data);
@@ -446,6 +450,14 @@ class YeePOS_REST_Controller
         }
 
         return $args;
+    }
+
+    public function allow_unlimited_per_page($params, $post_type)
+    {
+        if (isset($params['per_page'])) {
+            $params['per_page']['maximum'] = 1000000;
+        }
+        return $params;
     }
 }
 new YeePOS_REST_Controller();

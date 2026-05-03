@@ -537,5 +537,8 @@
   "registers.start_working": "เริ่มทำงาน",
   "registers.close_register": "ปิดเครื่อง / จบกะ",
   "registers.close_register_confirm": "คุณแน่ใจหรือไม่ว่าต้องการปิดเครื่องเก็บเงินนี้และจบกะของคุณ?",
-  "common.back_to_stores": "กลับไปที่การเลือกสาขา"
+  "common.back_to_stores": "กลับไปที่การเลือกสาขา",
+  "settings.force_landscape": "Force Landscape",
+  "settings.force_landscape_desc": "Lock screen orientation to landscape on mobile/tablet.",
+  "settings.unlimited": "Unlimited"
 }

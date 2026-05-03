@@ -34,6 +34,13 @@
     background-color: var(--bg-page);
     color: var(--text-main);
   }
+
+  /* Remove drop shadows in light mode for a flatter, modern look */
+  html:not(.dark) * {
+    --tw-shadow: 0 0 #0000 !important;
+    --tw-shadow-colored: 0 0 #0000 !important;
+    --tw-shadow-color: transparent !important;
+  }
 }
 
 body,

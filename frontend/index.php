@@ -53,7 +53,8 @@ class Yeekit_Woo_Pos_Frontend
                 'activeModules' => apply_filters('yeepos_active_modules', [
                     'food' => false
                 ]),
-                'locale' => substr(get_locale(), 0, 2)
+                'locale' => substr(get_locale(), 0, 2),
+                'enabledGateways' => get_option('yeepos_enabled_gateways', ['cash', 'cod', 'bacs', 'cheque', 'chip_and_pin'])
             ];
             wp_register_script('yee-pos-data', '');
             wp_localize_script('yee-pos-data', 'yeePOSData', $yee_pos_data);
@@ -116,7 +117,8 @@ class Yeekit_Woo_Pos_Frontend
                 'activeModules' => apply_filters('yeepos_active_modules', [
                     'food' => false
                 ]),
-                'locale' => substr(get_locale(), 0, 2)
+                'locale' => substr(get_locale(), 0, 2),
+                'enabledGateways' => get_option('yeepos_enabled_gateways', ['cash', 'cod', 'bacs', 'cheque', 'chip_and_pin'])
             ];
 ?>
             <!DOCTYPE html>
@@ -138,7 +140,7 @@ class Yeekit_Woo_Pos_Frontend
                     window.yeePOSData = <?php echo wp_json_encode($yee_pos_data); ?>;
                 </script>
                 <?php
-                $is_dev = false;
+                $is_dev = true;
                 if ($is_dev) :
                 ?>
                     <script type="module">

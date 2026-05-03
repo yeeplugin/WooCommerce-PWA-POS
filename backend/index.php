@@ -146,6 +146,19 @@ class Yeekit_Woo_Pos_Backend
                 } else {
                     delete_option('yeemenu_exclude_cats');
                 }
+            } elseif ($active_tab === 'checkout') {
+                if (isset($_POST['yeepos_offline_disabled_gateways'])) {
+                    $disabled = array_map('sanitize_text_field', (array) wp_unslash($_POST['yeepos_offline_disabled_gateways']));
+                    update_option('yeepos_offline_disabled_gateways', $disabled);
+                } else {
+                    delete_option('yeepos_offline_disabled_gateways');
+                }
+                if (isset($_POST['yeepos_enabled_gateways'])) {
+                    $enabled = array_map('sanitize_text_field', (array) wp_unslash($_POST['yeepos_enabled_gateways']));
+                    update_option('yeepos_enabled_gateways', $enabled);
+                } else {
+                    delete_option('yeepos_enabled_gateways');
+                }
             }
             // Auto-flush rewrite rules
             $this->add_rewrite_rules();
@@ -163,8 +176,9 @@ class Yeekit_Woo_Pos_Backend
             <nav class="nav-tab-wrapper" style="margin-bottom: 20px;">
                 <?php
                 $tabs = [
-                    'general' => __('General', 'yeepos'),
-                    'pwa' => __('Settings APP PWA', 'yeepos'),
+                    'general'  => __('General', 'yeepos'),
+                    'checkout' => __('Payments', 'yeepos'),
+                    'pwa'      => __('Settings APP PWA', 'yeepos'),
 
                     'filters' => __('Product Filters', 'yeepos'),
                 ];
@@ -186,192 +200,240 @@ class Yeekit_Woo_Pos_Backend
                             <p><?php esc_html_e('Launch the YeePOS application in a new window.', 'yeepos'); ?></p>
                             <p><a href="<?php echo esc_url($pos_url); ?>" target="_blank" class="button button-primary button-large"><?php esc_html_e('Open POS Application', 'yeepos'); ?></a></p>
                         </div>
-                    <?php elseif ($active_tab === 'pwa') :
+
+                    <?php elseif ($active_tab === 'checkout') : ?>
+                        <div class="card" style="max-width: 100%; margin-top: 0;">
+                            <h2><?php esc_html_e('POS Payment Methods', 'yeepos'); ?></h2>
+                            <p><?php esc_html_e('Select the payment gateways that should be available INSIDE the YeePOS application.', 'yeepos'); ?></p>
+
+                            <?php
+                            $yeepos_enabled_gateways = get_option('yeepos_enabled_gateways', ['cash', 'cod', 'bacs', 'cheque', 'chip_and_pin']);
+                            $all_gateways = WC()->payment_gateways->payment_gateways();
+                            $gateways = array_filter($all_gateways, fn($gw) => $gw->enabled === 'yes');
+                            ?>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 15px;">
+                                <?php foreach ($gateways as $gateway) : ?>
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #f8fafc;">
+                                        <input type="checkbox" name="yeepos_enabled_gateways[]" value="<?php echo esc_attr($gateway->id); ?>" <?php checked(in_array($gateway->id, $yeepos_enabled_gateways)); ?>>
+                                        <span style="font-weight: 500;"><?php echo esc_html($gateway->get_title()); ?></span>
+                                        <code style="font-size: 10px; color: #64748b; margin-left: auto;"><?php echo esc_html($gateway->id); ?></code>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="card" style="max-width: 100%; margin-top: 20px;">
+                            <h2><?php esc_html_e('Disabled Online Payment', 'yeepos'); ?></h2>
+                            <p><?php esc_html_e('Select the payment gateways to DISABLE when a customer uses the online payment link.', 'yeepos'); ?></p>
+
+                            <?php
+                            $disabled_gateways = get_option('yeepos_offline_disabled_gateways', ['cod', 'cheque', 'bacs']);
+
+                            // Re-use the display list from above or ensure it's available here
+                            ?>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 15px;">
+                                <?php foreach ($gateways as $gateway) :
+                                    // Don't show 'cash' or 'chip_and_pin' in online payment link disabled list as they are never options online anyway
+                                    if (in_array($gateway->id, ['cash', 'chip_and_pin'])) continue;
+                                ?>
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #f8fafc;">
+                                        <input type="checkbox" name="yeepos_offline_disabled_gateways[]" value="<?php echo esc_attr($gateway->id); ?>" <?php checked(in_array($gateway->id, $disabled_gateways)); ?>>
+                                        <span style="font-weight: 500;"><?php echo esc_html($gateway->get_title()); ?></span>
+                                        <code style="font-size: 10px; color: #64748b; margin-left: auto;"><?php echo esc_html($gateway->id); ?></code>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="description" style="margin-top: 15px;">
+                                <?php esc_html_e('Commonly disabled: Cash on Delivery (cod), Check payments (cheque), Direct bank transfer (bacs).', 'yeepos'); ?>
+                            </p>
+                        </div>
+                </div>
+            <?php elseif ($active_tab === 'pwa') :
                         $pwa_name = get_option('yeepos_pwa_name', get_bloginfo('name'));
                         $pwa_short = get_option('yeepos_pwa_short_name', 'YeePOS');
                         $pwa_theme = get_option('yeepos_pwa_theme_color', '#0ea5e9');
                         $pwa_bg = get_option('yeepos_pwa_bg_color', '#ffffff');
                         $pwa_icon = get_option('yeepos_pwa_icon', YEEKIT_WOO_POS_URL . 'assets/icon-512.png');
-                    ?>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row"><label for="yeepos_pwa_name"><?php esc_html_e('App Full Name', 'yeepos'); ?></label></th>
-                                <td><input name="yeepos_pwa_name" type="text" id="yeepos_pwa_name" value="<?php echo esc_attr($pwa_name); ?>" class="regular-text"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeepos_pwa_short_name"><?php esc_html_e('Short Name (on Home Screen)', 'yeepos'); ?></label></th>
-                                <td><input name="yeepos_pwa_short_name" type="text" id="yeepos_pwa_short_name" value="<?php echo esc_attr($pwa_short); ?>" class="regular-text"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeepos_pwa_theme_color"><?php esc_html_e('Theme Color', 'yeepos'); ?></label></th>
-                                <td><input name="yeepos_pwa_theme_color" type="color" id="yeepos_pwa_theme_color" value="<?php echo esc_attr($pwa_theme); ?>"> <span class="description"><?php esc_html_e('Affects the toolbar color.', 'yeepos'); ?></span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeepos_pwa_icon"><?php esc_html_e('Theme Icon', 'yeepos'); ?></label></th>
-                                <td>
-                                    <div class="yeepos-icon-preview-wrapper" style="margin-bottom: 10px;">
-                                        <img id="yeepos_pwa_icon_preview" src="<?php echo esc_url($pwa_icon); ?>" style="max-width: 120px; height: auto; display: block; border: 1px solid #ddd; padding: 4px; background: #fff; border-radius: 8px;">
-                                    </div>
-                                    <input name="yeepos_pwa_icon" type="hidden" id="yeepos_pwa_icon_input" value="<?php echo esc_attr($pwa_icon); ?>">
-                                    <button type="button" class="button" id="yeepos_pwa_icon_button"><?php esc_html_e('Select Image', 'yeepos'); ?></button>
-                                    <span class="description"><?php esc_html_e('App icon (512x512 recommended).', 'yeepos'); ?></span>
-                                </td>
-                            </tr>
-                        </table>
+            ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="yeepos_pwa_name"><?php esc_html_e('App Full Name', 'yeepos'); ?></label></th>
+                        <td><input name="yeepos_pwa_name" type="text" id="yeepos_pwa_name" value="<?php echo esc_attr($pwa_name); ?>" class="regular-text"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeepos_pwa_short_name"><?php esc_html_e('Short Name (on Home Screen)', 'yeepos'); ?></label></th>
+                        <td><input name="yeepos_pwa_short_name" type="text" id="yeepos_pwa_short_name" value="<?php echo esc_attr($pwa_short); ?>" class="regular-text"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeepos_pwa_theme_color"><?php esc_html_e('Theme Color', 'yeepos'); ?></label></th>
+                        <td><input name="yeepos_pwa_theme_color" type="color" id="yeepos_pwa_theme_color" value="<?php echo esc_attr($pwa_theme); ?>"> <span class="description"><?php esc_html_e('Affects the toolbar color.', 'yeepos'); ?></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeepos_pwa_icon"><?php esc_html_e('Theme Icon', 'yeepos'); ?></label></th>
+                        <td>
+                            <div class="yeepos-icon-preview-wrapper" style="margin-bottom: 10px;">
+                                <img id="yeepos_pwa_icon_preview" src="<?php echo esc_url($pwa_icon); ?>" style="max-width: 120px; height: auto; display: block; border: 1px solid #ddd; padding: 4px; background: #fff; border-radius: 8px;">
+                            </div>
+                            <input name="yeepos_pwa_icon" type="hidden" id="yeepos_pwa_icon_input" value="<?php echo esc_attr($pwa_icon); ?>">
+                            <button type="button" class="button" id="yeepos_pwa_icon_button"><?php esc_html_e('Select Image', 'yeepos'); ?></button>
+                            <span class="description"><?php esc_html_e('App icon (512x512 recommended).', 'yeepos'); ?></span>
+                        </td>
+                    </tr>
+                </table>
 
-                    <?php elseif ($active_tab === 'filters') :
+            <?php elseif ($active_tab === 'filters') :
                         $include_prods = (array)get_option('yeemenu_include_prods', []);
                         $exclude_prods = (array)get_option('yeemenu_exclude_prods', []);
                         $include_cats = (array)get_option('yeemenu_include_cats', []);
                         $exclude_cats = (array)get_option('yeemenu_exclude_cats', []);
                         $all_cats = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]);
-                    ?>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row"><label for="yeemenu_include_prods"><?php esc_html_e('Include Products', 'yeepos'); ?></label></th>
-                                <td>
-                                    <select name="yeemenu_include_prods[]" id="yeemenu_include_prods" class="wc-product-search regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); //phpcs:ignore WordPress.WP.I18n.TextDomainMismatch 
-                                                                                                                                                                                                        ?>" data-action="woocommerce_json_search_products_and_variations">
-                                        <?php
-                                        foreach ($include_prods as $product_id) {
-                                            $product = wc_get_product($product_id);
-                                            if (is_object($product)) {
-                                                echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . wp_kses_post($product->get_formatted_name()) . '</option>';
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('Search and select products to specifically include.', 'yeepos'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeemenu_exclude_prods"><?php esc_html_e('Exclude Products', 'yeepos'); ?></label></th>
-                                <td>
-                                    <select name="yeemenu_exclude_prods[]" id="yeemenu_exclude_prods" class="wc-product-search regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); //phpcs:ignore WordPress.WP.I18n.TextDomainMismatch 
-                                                                                                                                                                                                        ?>" data-action="woocommerce_json_search_products_and_variations">
-                                        <?php
-                                        foreach ($exclude_prods as $product_id) {
-                                            $product = wc_get_product($product_id);
-                                            if (is_object($product)) {
-                                                echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . wp_kses_post($product->get_formatted_name()) . '</option>';
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('Search and select products to exclude from sync.', 'yeepos'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeemenu_include_cats"><?php esc_html_e('Include Categories', 'yeepos'); ?></label></th>
-                                <td>
-                                    <select name="yeemenu_include_cats[]" id="yeemenu_include_cats" class="wc-enhanced-select regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Select categories&hellip;', 'yeepos'); ?>">
-                                        <?php foreach ($all_cats as $cat) : ?>
-                                            <option value="<?php echo esc_attr($cat->term_id); ?>" <?php selected(in_array((string)$cat->term_id, $include_cats, true)); ?>><?php echo esc_html($cat->name); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('Only products from selected categories will be synced.', 'yeepos'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="yeemenu_exclude_cats"><?php esc_html_e('Exclude Categories', 'yeepos'); ?></label></th>
-                                <td>
-                                    <select name="yeemenu_exclude_cats[]" id="yeemenu_exclude_cats" class="wc-enhanced-select regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Select categories&hellip;', 'yeepos'); ?>">
-                                        <?php foreach ($all_cats as $cat) : ?>
-                                            <option value="<?php echo esc_attr($cat->term_id); ?>" <?php selected(in_array((string)$cat->term_id, $exclude_cats, true)); ?>><?php echo esc_html($cat->name); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('Products from selected categories will be excluded from sync.', 'yeepos'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
-                    <?php endif; ?>
-                    <?php do_action('yeepos_admin_tab_content', $active_tab); ?>
-                    <?php if ($active_tab === 'addons') :
-                        $is_branch_active = class_exists('YeePOS_Branch');
-                        $is_food_active = class_exists('YeePOS_Food');
-                        $is_addons_active = class_exists('YeePOS_Product_Addons');
-                    ?>
-                        <div class="yeepos-addons-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-branch.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Store & Branch Management', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Manage multiple store locations, assign registers to branches, and track sales per store for accurate reporting.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <?php if ($is_branch_active) : ?>
-                                        <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
-                                        <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
-                                    <?php else : ?>
-                                        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
-                                        <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-food.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Restaurant & F&B', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Table management, dining-in features, kitchen area coordination, and interactive table maps for restaurants.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <?php if ($is_food_active) : ?>
-                                        <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
-                                        <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
-                                    <?php else : ?>
-                                        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
-                                        <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-product.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Product Add-on', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Allow customers to customize products with extra options, toppings, and special requests directly at the counter.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <?php if ($is_addons_active) : ?>
-                                        <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
-                                        <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
-                                    <?php else : ?>
-                                        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
-                                        <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-inventory.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Inventory Pro', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Advanced stock management: Multi-warehouse support, stock transfers, low-stock alerts, and purchase orders.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
-                                    <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
-                                </div>
-                            </div>
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-loyalty.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Loyalty & Rewards', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Engage customers with reward points, membership tiers, birthday gifts, and targeted discount campaigns.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
-                                    <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
-                                </div>
-                            </div>
-                            <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-analytics.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
-                                <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Cloud Analytics', 'yeepos'); ?></h2>
-                                <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Real-time business insights: Sales trends, profit margins, staff performance, and automated email reports.', 'yeepos'); ?></p>
-                                <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
-                                    <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
-                                </div>
-                            </div>
+            ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="yeemenu_include_prods"><?php esc_html_e('Include Products', 'yeepos'); ?></label></th>
+                        <td>
+                            <select name="yeemenu_include_prods[]" id="yeemenu_include_prods" class="wc-product-search regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); //phpcs:ignore WordPress.WP.I18n.TextDomainMismatch 
+                                                                                                                                                                                                ?>" data-action="woocommerce_json_search_products_and_variations">
+                                <?php
+                                foreach ($include_prods as $product_id) {
+                                    $product = wc_get_product($product_id);
+                                    if (is_object($product)) {
+                                        echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . wp_kses_post($product->get_formatted_name()) . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                            <p class="description"><?php esc_html_e('Search and select products to specifically include.', 'yeepos'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeemenu_exclude_prods"><?php esc_html_e('Exclude Products', 'yeepos'); ?></label></th>
+                        <td>
+                            <select name="yeemenu_exclude_prods[]" id="yeemenu_exclude_prods" class="wc-product-search regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); //phpcs:ignore WordPress.WP.I18n.TextDomainMismatch 
+                                                                                                                                                                                                ?>" data-action="woocommerce_json_search_products_and_variations">
+                                <?php
+                                foreach ($exclude_prods as $product_id) {
+                                    $product = wc_get_product($product_id);
+                                    if (is_object($product)) {
+                                        echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . wp_kses_post($product->get_formatted_name()) . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                            <p class="description"><?php esc_html_e('Search and select products to exclude from sync.', 'yeepos'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeemenu_include_cats"><?php esc_html_e('Include Categories', 'yeepos'); ?></label></th>
+                        <td>
+                            <select name="yeemenu_include_cats[]" id="yeemenu_include_cats" class="wc-enhanced-select regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Select categories&hellip;', 'yeepos'); ?>">
+                                <?php foreach ($all_cats as $cat) : ?>
+                                    <option value="<?php echo esc_attr($cat->term_id); ?>" <?php selected(in_array((string)$cat->term_id, $include_cats, true)); ?>><?php echo esc_html($cat->name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description"><?php esc_html_e('Only products from selected categories will be synced.', 'yeepos'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="yeemenu_exclude_cats"><?php esc_html_e('Exclude Categories', 'yeepos'); ?></label></th>
+                        <td>
+                            <select name="yeemenu_exclude_cats[]" id="yeemenu_exclude_cats" class="wc-enhanced-select regular-text" multiple="multiple" style="width: 100%;" data-placeholder="<?php esc_attr_e('Select categories&hellip;', 'yeepos'); ?>">
+                                <?php foreach ($all_cats as $cat) : ?>
+                                    <option value="<?php echo esc_attr($cat->term_id); ?>" <?php selected(in_array((string)$cat->term_id, $exclude_cats, true)); ?>><?php echo esc_html($cat->name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description"><?php esc_html_e('Products from selected categories will be excluded from sync.', 'yeepos'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+            <?php endif; ?>
+            <?php do_action('yeepos_admin_tab_content', $active_tab); ?>
+            <?php if ($active_tab === 'addons') :
+                $is_branch_active = class_exists('YeePOS_Branch');
+                $is_food_active = class_exists('YeePOS_Food');
+                $is_addons_active = class_exists('YeePOS_Product_Addons');
+            ?>
+                <div class="yeepos-addons-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-branch.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Store & Branch Management', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Manage multiple store locations, assign registers to branches, and track sales per store for accurate reporting.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <?php if ($is_branch_active) : ?>
+                                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
+                                <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
+                            <?php else : ?>
+                                <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
+                                <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
+
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-food.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Restaurant & F&B', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Table management, dining-in features, kitchen area coordination, and interactive table maps for restaurants.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <?php if ($is_food_active) : ?>
+                                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
+                                <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
+                            <?php else : ?>
+                                <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
+                                <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-product.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Product Add-on', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Allow customers to customize products with extra options, toppings, and special requests directly at the counter.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <?php if ($is_addons_active) : ?>
+                                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Activated', 'yeepos'); ?></span>
+                                <span class="dashicons dashicons-yes-alt" style="color: #22c55e;"></span>
+                            <?php else : ?>
+                                <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Inactive', 'yeepos'); ?></span>
+                                <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="button button-primary"><?php esc_html_e('Activate', 'yeepos'); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-inventory.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Inventory Pro', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Advanced stock management: Multi-warehouse support, stock transfers, low-stock alerts, and purchase orders.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
+                            <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
+                        </div>
+                    </div>
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-loyalty.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Loyalty & Rewards', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Engage customers with reward points, membership tiers, birthday gifts, and targeted discount campaigns.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
+                            <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
+                        </div>
+                    </div>
+                    <div class="card" style="margin: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <img src="<?php echo esc_url(YEEKIT_WOO_POS_URL . 'assets/addon-analytics.png'); ?>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;"><?php esc_html_e('Cloud Analytics', 'yeepos'); ?></h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;"><?php esc_html_e('Real-time business insights: Sales trends, profit margins, staff performance, and automated email reports.', 'yeepos'); ?></p>
+                        <div style="margin-top: auto; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"><?php esc_html_e('Coming Soon', 'yeepos'); ?></span>
+                            <button type="button" class="button button-disabled" disabled><?php esc_html_e('Activate', 'yeepos'); ?></button>
+                        </div>
+                    </div>
                 </div>
-                <?php if ($active_tab !== 'addons' && $active_tab !== 'general' && $active_tab !== 'tables') : ?>
-                    <p class="submit">
-                        <input type="submit" name="yeepos_save_settings" id="submit" class="button button-primary" value="<?php esc_html_e('Save Settings', 'yeepos'); ?>">
-                    </p>
-                <?php endif; ?>
-            </form>
+            <?php endif; ?>
+        </div>
+        <?php if (!in_array($active_tab, ['addons', 'general', 'tables', 'stores', 'sessions'])) : ?>
+            <p class="submit">
+                <input type="submit" name="yeepos_save_settings" id="submit" class="button button-primary" value="<?php esc_html_e('Save Settings', 'yeepos'); ?>">
+            </p>
+        <?php endif; ?>
+        </form>
         </div>
     <?php
     }
